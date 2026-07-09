@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <script>(function(){try{var l=localStorage.getItem('blockmir_save_lang');if(l&&/^[a-z]{2}$/.test(l))document.documentElement.lang=l;}catch(e){}})();</script>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+  <meta name="theme-color" content="#1b0833" />
+  <title>BlockMir</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/tutorial-lux.css" />
+</head>
+<body>
+  <div id="app">
+    <div class="company-splash" aria-hidden="true">
+      <img src="assets/senova-splash-fullscreen.png" alt="" />
+    </div>
+    <div id="bootPremiumCurtain" class="boot-premium-curtain" aria-hidden="true">
+      <div class="boot-premium-shine"></div>
+      <div class="boot-premium-logo"><img src="assets/icon-512.png" alt="" width="88" height="88" /></div>
+    </div>
+    <section id="screenMenu" class="screen active menu-screen">
+      <div class="top-mini clean"><button class="round" id="settingsBtn">⚙</button><div class="pill record menu-best" id="menuLeaderboardBtn" style="cursor:pointer">🏆 <span id="bestMenu">8x8 0 • 10x10 0</span></div><div class="pill coin">🪙 <span id="coinsMenu">0</span></div></div>
+      <div class="brand-card menu-brand-premium">
+        <div class="menu-mascot-block">
+          <div class="menu-mascot-premium-btn" aria-hidden="false">
+            <div class="menu-mascot-inner">
+              <img class="menu-mascot-icon" src="assets/menu-mascot.png" alt="BlockMir maskot" width="176" height="176" decoding="async" />
+            </div>
+            <div class="menu-mascot-gloss" aria-hidden="true"></div>
+          </div>
+        </div>
+        <div class="brand-title"><span>BLOCK</span><span>MIR</span></div>
+        <div class="tagline" id="menuTagline">ZEKANI BLOKLARLA YANSIT!</div>
+        <div class="level-strip">
+          <b id="levelText">Seviye 1</b>
+          <div class="xp-track"><i id="xpFill"></i></div>
+          <small id="xpText">0 / 0 XP</small>
+        </div>
+        <div class="menu-adfree-badge nav-badge-adfree" id="navAdFreeBadge" role="status" tabindex="0" aria-live="polite">
+          <span class="nav-icon-wrap" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M8 12.5l2.5 2.5 5.5-5.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <small class="nav-label" id="navAdFreeLabel">Reklamsız oyun</small>
+        </div>
+      </div>
+      <div class="menu-buttons">
+        <div class="menu-group menu-group-play">
+          <small class="menu-group-label" id="menuGroupPlay">OYNA</small>
+          <button class="big-btn orange hidden" id="resumeBtn"><span class="resume-title">▶ DEVAM ET</span><small id="resumeSmall">kaldığın yer</small></button>
+          <button class="big-btn yellow" id="classicBtn">▶ KLASİK</button>
+          <button class="big-btn purple" id="adventureBtn"><span>▲ MACERA</span><small id="advSmall">1/100</small></button>
+        </div>
+        <div class="menu-group menu-group-daily">
+          <small class="menu-group-label" id="menuGroupDaily">GÜNLÜK</small>
+          <button class="big-btn pink menu-daily-btn" id="dailyBtn"><span id="dailyBtnTitle">🎁 GÜNLÜK ÖDÜL</span><small id="dailyBtnSub">kutu & modlar</small><small class="menu-streak-badge hidden" id="menuStreakBadge"></small></button>
+        </div>
+      </div>
+      <div class="bottom-nav premium-nav menu-bottom-nav">
+        <button class="nav-pill nav-pill-customize" id="navCustomize" type="button" aria-label="Kişiselleştir">
+          <span class="nav-icon-wrap" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.8 4.2L18 9l-4.2 1.8L12 15l-1.8-4.2L6 9l4.2-1.8L12 3z" fill="#ffd65d"/><circle cx="18.5" cy="17.5" r="2.5" stroke="#9d6bff" stroke-width="1.8"/><path d="M4 20l4-4" stroke="#58ffbf" stroke-width="2" stroke-linecap="round"/></svg></span>
+          <small class="nav-label" id="navCustomizeLabel">Kişiselleştir</small>
+        </button>
+        <button class="nav-pill nav-pill-ach" id="navAch" type="button" aria-label="Başarılar">
+          <span class="nav-icon-wrap" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><path d="M5 8h14v2c0 3-2 5-7 5s-7-2-7-5V8z" fill="url(#navGold)"/><path d="M9 8V6a3 3 0 016 0v2" stroke="#fff2b0" stroke-width="1.6"/><path d="M8 19h8l-1 3H9l-1-3z" fill="#ffd65d"/><defs><linearGradient id="navGold" x1="5" y1="8" x2="19" y2="15"><stop stop-color="#ffe98a"/><stop offset="1" stop-color="#f5a623"/></linearGradient></defs></svg></span>
+          <small class="nav-label">Başarılar</small>
+          <span class="nav-count-badge hidden" id="navAchCount" aria-hidden="true">0</span>
+        </button>
+        <button class="nav-pill nav-pill-stats" id="navStats" type="button" aria-label="İstatistik">
+          <span class="nav-icon-wrap" aria-hidden="true"><svg class="nav-svg" viewBox="0 0 24 24" fill="none"><rect x="5" y="13" width="4" height="7" rx="1.2" fill="#58ffbf"/><rect x="10" y="9" width="4" height="11" rx="1.2" fill="#9d6bff"/><rect x="15" y="5" width="4" height="15" rx="1.2" fill="#ffd65d"/><path d="M4 21h16" stroke="#ffffff55" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+          <small class="nav-label">İstatistik</small>
+        </button>
+      </div>
+    </section>
+
+    <section id="screenClassic" class="screen panel-screen classic-screen">
+      <div class="panel-head"><button class="round backBtn">‹</button><h2>Klasik Mod</h2><div class="pill" id="classicLeaderboardBtn" style="cursor:pointer">🏆</div></div>
+      <div class="classic-choice-wrap">
+        <button class="classic-choice" id="classic8Btn">
+          <strong>8x8 Hızlı Oyun</strong>
+          <span>Daha sıkışık, daha hızlı ve klasik BlockMir hissi.</span>
+          <em>Max Skor: <b id="classic8Best">0</b></em>
+        </button>
+        <button class="classic-choice wide" id="classic10Btn">
+          <strong>10x10 Geniş Tahta</strong>
+          <span>Daha uzun oyun, daha yüksek skor ve daha geniş strateji.</span>
+          <em>Max Skor: <b id="classic10Best">0</b></em>
+        </button>
+      </div>
+    </section>
+
+    <section id="screenGame" class="screen game-screen">
+      <div class="game-top daily-game-top">
+        <button class="round" id="pauseBtn">Ⅱ</button>
+        <div class="score-card" id="scoreCard">
+          <div class="score-card-top">
+            <span id="modeLabel">KLASİK</span>
+            <span id="dailyModeBadge" class="daily-mode-badge hidden"></span>
+          </div>
+          <b id="scoreText">0</b>
+          <small id="targetText"></small>
+        </div>
+        <div class="pill record game-record" id="gameLeaderboardBtn" style="cursor:pointer">🏆 <span id="bestGame">0</span></div>
+        <div class="pill coin">🪙 <span id="coinsGame">0</span></div>
+      </div>
+      <div id="comboToast" class="combo-toast"></div>
+      <div id="adventureMissionHud" class="adv5-mission-hud hidden" aria-live="polite"></div>
+      <div id="adventureTimerStrip" class="adventure-timer hidden">
+        <div class="timer-head"><span id="advTimerTitle">Macera Süresi</span><b id="advTimerClock">00:00</b></div>
+        <div class="star-road">
+          <span class="star-node s3" id="starNode3">⭐⭐⭐</span>
+          <i id="starRoadFill"></i>
+          <span class="star-node s2" id="starNode2">⭐⭐</span>
+          <span class="star-node s1" id="starNode1">⭐</span>
+        </div>
+        <div class="timer-limits"><span id="limit3">3★</span><span id="limit2">2★</span><span id="limit1">1★</span></div>
+      </div>
+      <div id="dailyShrinkStrip" class="daily-shrink-strip hidden">
+        <div class="daily-shrink-panel">
+          <div class="daily-shrink-dial" aria-hidden="true">
+            <div class="daily-shrink-dial-ring"></div>
+            <div class="daily-shrink-needle-wrap" id="dailyShrinkNeedleWrap"><i class="daily-shrink-needle" id="dailyShrinkNeedle"></i></div>
+            <span class="daily-shrink-board" id="dailyShrinkBoard">8×8</span>
+          </div>
+          <div class="daily-shrink-copy">
+            <div class="daily-shrink-head"><span id="dailyShrinkTitle">Daralma riski</span><b id="dailyShrinkCounter">0/8</b></div>
+            <div class="daily-shrink-segments" id="dailyShrinkSegments"></div>
+            <small id="dailyShrinkHint">Patlama yoksa tahta küçülür</small>
+          </div>
+        </div>
+      </div>
+      <div class="board-shell">
+        <div id="nightFogVeil" class="night-fog-veil hidden" aria-hidden="true"></div>
+        <div id="board" class="board"></div>
+      </div>
+      <div id="pieceTray" class="piece-tray"></div>
+      <div class="game-actions">
+        <button id="undoBtn"><b>↶</b><span>GERİ AL</span><small id="undoCount">1 hamle</small></button>
+        <button id="hintBtn"><b>💡</b><span>İPUCU</span><small id="hintCount">1</small></button>
+        <button id="restartBtn"><b>↻</b><span>YENİDEN</span><small>başla</small></button>
+      </div>
+    </section>
+
+    <section id="screenAdventure" class="screen panel-screen adv5-screen">
+      <div class="adv5-ambient" id="adv5Ambient" aria-hidden="true"></div>
+      <div class="panel-head adv5-head"><button class="round backBtn">‹</button><h2>Macera Yolu</h2><div class="pill adv5-pill">⭐ <span id="advStarTotal">0</span> • <span id="advLevelHead">1</span>/100</div></div>
+      <div class="adventure-scroll adv5-scroll" id="adventureScroll">
+        <div id="worldMap" class="adv5-world-rail"></div>
+        <div class="adv5-map-head"><b id="adv5WorldTitle">Bölüm I</b><span id="advGridMeta">1-10</span></div>
+        <div id="levelGrid" class="adv5-level-path"></div>
+        <div id="adv5Hero" class="adv5-hero adv5-hero-compact"></div>
+        <div class="adv5-mission-shell">
+          <div class="adv5-mission-head"><span id="levelTitle">Seviye 1</span><em id="adv5MissionType">Görev</em></div>
+          <div id="adv5CoachSlot" class="adv5-coach-slot"></div>
+          <div id="levelDesc" class="adv5-mission-body"></div>
+        </div>
+      </div>
+      <div class="adv5-footer"><p id="adv5ReplayHint" class="adv5-replay-hint hidden"></p><button class="big-btn adv5-play-btn" id="startAdventureBtn" type="button">▶ BÖLÜME BAŞLA</button></div>
+    </section>
+
+    <section id="screenCustomize" class="screen panel-screen customize-screen">
+      <div class="panel-head customize-head"><button class="round backBtn">‹</button><h2 id="customizeTitle">Kişiselleştir</h2><div class="pill coin customize-coin-pill hidden" id="customizeCoinPill">🪙 <span id="coinsCustomize">0</span></div><button class="round customize-reset-btn" id="resetThemeBtn" type="button">↺</button></div>
+      <div class="customize-tabs">
+        <button type="button" class="customize-tab active" id="customizeTabThemeBtn" data-tab="theme">🎨 Tema</button>
+        <button type="button" class="customize-tab" id="customizeTabMarketBtn" data-tab="market">🪙 Market</button>
+      </div>
+      <div id="customizeMarketSubTabs" class="market-tabs customize-market-tabs hidden" aria-hidden="true">
+        <button type="button" data-tab="themes" class="active">Temalar</button>
+        <button type="button" data-tab="blocks">Bloklar</button>
+        <button type="button" data-tab="effects">Efektler</button>
+        <button type="button" data-tab="boosters">Güçler</button>
+      </div>
+      <div class="customize-scroll" id="customizeScroll">
+        <div id="customizeThemePanel" class="customize-panel active">
+          <div class="theme-tools">
+            <button class="upload-card" id="photoPickBtn" type="button">📷 Galeriden Fotoğraf Seç</button>
+            <input id="photoInput" class="native-file-input" type="file" accept="image/*">
+            <button class="upload-card" id="clearPhotoBtn">✨ Varsayılana Dön</button>
+          </div>
+          <div id="themeList" class="theme-list"></div>
+          <div class="sliders"><label><span id="blurLabel">Bulanıklık</span> <input id="blurRange" type="range" min="0" max="4" value="0"></label><label><span id="darkLabel">Koyuluk</span> <input id="darkRange" type="range" min="0" max="55" value="0"></label></div>
+        </div>
+        <div id="customizeMarketPanel" class="customize-panel">
+          <div id="marketList" class="market-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screenDaily" class="screen panel-screen daily-hub-screen">
+      <div class="panel-head"><button class="round backBtn">‹</button><h2 id="dailyHubTitle">Günlük</h2><div class="pill coin">🪙 <span id="coinsDaily">0</span></div></div>
+      <div class="daily-hub-tabs">
+        <button type="button" class="daily-hub-tab active" id="dailyTabRewardBtn" data-tab="reward">🎁 Ödül</button>
+        <button type="button" class="daily-hub-tab" id="dailyTabChallengeBtn" data-tab="challenge">⚔ Meydan Okuma</button>
+      </div>
+      <div class="daily-scroll" id="dailyScroll">
+        <div id="dailyPanelReward" class="daily-hub-panel active">
+          <div class="daily-streak-strip" id="dailyStreakStrip"></div>
+          <div class="daily-chest-stage" id="dailyChestStage">
+            <div class="daily-chest-aura" id="dailyChestAura" aria-hidden="true"></div>
+            <div class="daily-chest-burst" id="dailyChestBurst" aria-hidden="true"></div>
+            <p class="daily-chest-hint" id="dailyChestHint">Dokun ve bugünkü ödülünü aç</p>
+            <button type="button" class="daily-chest-box" id="dailyChestBox" aria-label="Şans kutusu">
+              <span class="daily-chest-lid" aria-hidden="true"></span>
+              <span class="daily-chest-body" aria-hidden="true">🎁</span>
+              <span class="daily-chest-shine" aria-hidden="true"></span>
+            </button>
+            <div class="daily-chest-reveal hidden" id="dailyChestReveal">
+              <div class="daily-reveal-burst" aria-hidden="true"></div>
+              <div class="daily-reveal-rarity" id="dailyRevealRarity"></div>
+              <b id="dailyRevealTitle">Ödül</b>
+              <p id="dailyRevealDesc"></p>
+            </div>
+            <button class="big-btn pink daily-chest-open-btn" id="dailyChestOpenBtn" type="button">KUTUYU AÇ</button>
+          </div>
+        </div>
+        <div id="dailyPanelChallenge" class="daily-hub-panel">
+          <div class="daily-trophy-grid" id="dailyTrophyGrid"></div>
+          <div class="daily-challenge-today" id="dailyChallengeToday"></div>
+          <button class="big-btn yellow daily-challenge-play" id="dailyChallengePlayBtn" type="button">OYNA</button>
+          <div class="daily-mode-board">
+            <div class="daily-mode-board-head"><b id="dailyModeBoardTitle">Mod rekorları</b><span id="dailyModeBoardSub">8×8 • günlük max skor</span></div>
+            <div id="dailyModeScoreList" class="daily-mode-score-list"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screenAchievements" class="screen panel-screen ach-premium-screen">
+      <div class="panel-head"><button class="round backBtn">‹</button><h2>Başarılar</h2><div class="pill ach-pill">⭐ <span id="achCount">0</span></div></div>
+      <div class="ach-scroll" id="achScroll"><div id="achList" class="ach-list ach-list-premium"></div></div>
+    </section>
+
+    <section id="screenStats" class="screen panel-screen stats-premium-screen">
+      <div class="panel-head"><button class="round backBtn">‹</button><h2>İstatistikler</h2><div class="pill coin">🪙 <span id="coinsStats">0</span></div></div>
+      <div class="stats-scroll" id="statsScroll"><div id="statsList" class="stats-list stats-premium"></div></div>
+    </section>
+
+    <section id="screenSettings" class="screen panel-screen settings-premium-screen">
+      <div class="panel-head"><button class="round backBtn">‹</button><h2>Ayarlar</h2></div>
+      <div class="settings-scroll" id="settingsScroll">
+        <div class="settings-cards">
+          <div class="premium-setting-card psc-toggle-card" id="musicCard">
+            <div class="psc-head">
+              <span class="psc-icon psc-icon-music" aria-hidden="true">♪</span>
+              <div class="psc-copy"><b id="musicTitle">Müzik</b><small id="musicDesc">Arka plan müziği</small></div>
+              <button class="psc-toggle" id="musicToggleBtn" type="button" aria-pressed="true"><i></i></button>
+            </div>
+            <div class="psc-volume-row">
+              <label id="musicVolLabel" for="musicVolRange">Vol</label>
+              <input type="range" id="musicVolRange" min="0" max="100" value="100" aria-labelledby="musicVolLabel" />
+              <output id="musicVolOut" for="musicVolRange">100%</output>
+            </div>
+          </div>
+          <div class="premium-setting-card psc-toggle-card" id="soundCard">
+            <div class="psc-head">
+              <span class="psc-icon psc-icon-sound" aria-hidden="true">🔊</span>
+              <div class="psc-copy"><b id="soundTitle">Ses Efektleri</b><small id="soundDesc">Oyun sesleri ve patlamalar</small></div>
+              <button class="psc-toggle" id="soundToggleBtn" type="button" aria-pressed="true"><i></i></button>
+            </div>
+            <div class="psc-volume-row">
+              <label id="sfxVolLabel" for="sfxVolRange">Vol</label>
+              <input type="range" id="sfxVolRange" min="0" max="100" value="100" aria-labelledby="sfxVolLabel" />
+              <output id="sfxVolOut" for="sfxVolRange">100%</output>
+            </div>
+          </div>
+          <div class="premium-setting-card psc-toggle-card" id="vibrateCard">
+            <div class="psc-head">
+              <span class="psc-icon psc-icon-vibrate" aria-hidden="true">📳</span>
+              <div class="psc-copy"><b id="vibrateTitle">Titreşim</b><small id="vibrateDesc">Dokunsal geri bildirim</small></div>
+              <button class="psc-toggle" id="vibrateToggleBtn" type="button" aria-pressed="true"><i></i></button>
+            </div>
+          </div>
+          <div class="premium-setting-card psc-graphics-card" id="graphicsCard">
+            <div class="psc-head psc-head-graphics">
+              <span class="psc-icon psc-icon-graphics" aria-hidden="true">✦</span>
+              <div class="psc-copy"><b id="graphicsTitle">Grafik Kalitesi</b><small id="graphicsDesc">Düşük cihazlarda efektleri azaltır.</small></div>
+              <select id="graphicsSelect" class="psc-select" aria-labelledby="graphicsTitle">
+                <option value="max">Maksimum</option>
+                <option value="high">Yüksek</option>
+                <option value="auto">Otomatik</option>
+                <option value="medium">Orta</option>
+                <option value="low">Düşük</option>
+                <option value="ultra">Çok Düşük</option>
+              </select>
+            </div>
+          </div>
+          <div class="premium-setting-card psc-language-card">
+            <div class="psc-head psc-head-lang"><span class="psc-icon psc-icon-lang" aria-hidden="true">🌐</span><div class="psc-copy"><b id="languageTitle">Dil</b><small id="languageDesc">Seçili: Türkçe</small></div></div>
+            <div class="lang-premium-v2" id="languageFlags">
+              <button type="button" class="lang-current-btn" id="langCurrentBtn" aria-expanded="false" aria-controls="langGridPanel">
+                <span class="lang-current-flag" id="langCurrentFlag" aria-hidden="true">🇹🇷</span>
+                <span class="lang-current-text" id="langCurrentText">Türkçe</span>
+                <span class="lang-current-chevron" aria-hidden="true">▾</span>
+              </button>
+              <div class="lang-grid-panel hidden" id="langGridPanel">
+                <div class="lang-grid" id="langGrid" role="listbox" aria-label="Language"></div>
+              </div>
+            </div>
+          </div>
+          <div class="premium-setting-card colorblind-card" id="colorblindCard">
+            <div class="psc-head">
+              <span class="psc-icon psc-icon-colorblind" aria-hidden="true">◎</span>
+              <div class="psc-copy"><b id="colorblindTitle">Renk Körlüğü Dostu Mod</b><small id="colorblindDesc">Bloklara şekil işareti ekler, renkleri daha kolay ayırt ettirir.</small></div>
+              <button class="psc-toggle" id="colorblindToggleBtn" type="button" aria-pressed="false"><i></i></button>
+            </div>
+            <div class="psc-preview" aria-hidden="true"><span>●</span><span>▲</span><span>◆</span><span>■</span><span>★</span><span>⬟</span></div>
+          </div>
+          <div class="psc-action-row"><span id="tutorialLabel">BlockMir Rehberi</span><button id="tutorialOpenBtn" type="button">Aç</button></div>
+          <div class="psc-action-row"><span id="photoLabel">Tahta Fotoğrafı</span><button id="photoShortcut" type="button">Seç</button></div>
+          <div class="psc-action-row"><span id="reviewLabel">Oyunu Değerlendir</span><button id="reviewBtn" type="button">Aç</button></div>
+          <div class="psc-action-row"><span id="privacyLabel">Gizlilik Politikası</span><button id="privacyBtn" type="button">Aç</button></div>
+          <p class="version-strip" id="settingsVersion"></p>
+        </div>
+      </div>
+    </section>
+
+    <section id="screenPause" class="modal-screen pause-screen">
+      <div class="modal-card pause-card">
+        <h2 id="pauseTitle">DURAKLAT</h2>
+        <div class="pause-actions">
+          <button class="big-btn green" id="pauseResumeBtn" type="button">DEVAM ET</button>
+          <button class="big-btn yellow" id="pauseRestartBtn" type="button">YENİDEN BAŞLA</button>
+          <button class="big-btn purple" id="pauseMenuBtn" type="button">ANA MENÜ</button>
+        </div>
+        <div class="pause-settings">
+          <p class="pause-settings-label" id="pauseSettingsLabel">Hızlı ayarlar</p>
+          <div class="pause-settings-grid">
+            <div class="premium-setting-card psc-toggle-card pause-setting-card" id="pauseMusicCard">
+              <div class="psc-head">
+                <span class="psc-icon psc-icon-music" aria-hidden="true">♪</span>
+                <div class="psc-copy"><b id="pauseMusicTitle">Müzik</b></div>
+                <button class="psc-toggle" id="pauseMusicToggleBtn" type="button" aria-pressed="true"><i></i></button>
+              </div>
+            </div>
+            <div class="premium-setting-card psc-toggle-card pause-setting-card" id="pauseSoundCard">
+              <div class="psc-head">
+                <span class="psc-icon psc-icon-sound" aria-hidden="true">🔊</span>
+                <div class="psc-copy"><b id="pauseSoundTitle">Ses Efektleri</b></div>
+                <button class="psc-toggle" id="pauseSoundToggleBtn" type="button" aria-pressed="true"><i></i></button>
+              </div>
+            </div>
+            <div class="premium-setting-card psc-toggle-card pause-setting-card" id="pauseVibrateCard">
+              <div class="psc-head">
+                <span class="psc-icon psc-icon-vibrate" aria-hidden="true">📳</span>
+                <div class="psc-copy"><b id="pauseVibrateTitle">Titreşim</b></div>
+                <button class="psc-toggle" id="pauseVibrateToggleBtn" type="button" aria-pressed="true"><i></i></button>
+              </div>
+            </div>
+            <div class="premium-setting-card psc-graphics-card pause-setting-card pause-graphics-card" id="pauseGraphicsCard">
+              <div class="psc-head psc-head-graphics">
+                <span class="psc-icon psc-icon-graphics" aria-hidden="true">✦</span>
+                <div class="psc-copy"><b id="pauseGraphicsTitle">Grafik Kalitesi</b></div>
+                <select id="pauseGraphicsSelect" class="psc-select" aria-labelledby="pauseGraphicsTitle">
+                  <option value="max">Maksimum</option>
+                  <option value="high">Yüksek</option>
+                  <option value="auto">Otomatik</option>
+                  <option value="medium">Orta</option>
+                  <option value="low">Düşük</option>
+                  <option value="ultra">Çok Düşük</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="screenGameOver" class="modal-screen">
+      <div class="modal-card"><h2 id="overTitle">OYUN BİTTİ!</h2><p id="gameOverScoreLabel">Skor</p><strong id="resultScore">0</strong><p id="rewardLine"></p><button class="big-btn orange revive-btn hidden" id="reviveBtn" type="button"><span id="reviveBtnLabel">🪙 İLE DEVAM</span><small id="reviveBtnSub">Tahta korunur</small></button><button class="big-btn green" id="continueBtn">DEVAM ET</button><button class="big-btn cyan hidden" id="shareScoreBtn" type="button">SKORU PAYLAŞ</button><button class="big-btn yellow" id="againBtn">YENİDEN BAŞLA</button><button class="big-btn purple" id="menuBtn">ANA MENÜ</button></div>
+    </section>
+
+    <section id="screenLangPick" class="modal-screen lang-pick-screen">
+      <div class="lang-pick-card">
+        <div class="lang-pick-glow" aria-hidden="true"></div>
+        <img class="lang-pick-logo" src="assets/icon-512.png" alt="" width="72" height="72" />
+        <h2 id="langPickTitle">Dil</h2>
+        <p class="lang-pick-sub" id="langPickSub">Language</p>
+        <div class="lang-pick-grid" id="langPickGrid" role="listbox"></div>
+      </div>
+    </section>
+
+    <section id="screenTutorial" class="modal-screen tutorial-screen">
+      <div class="modal-card tutorial-card premium-tutorial lux-tutorial tut-minimal">
+        <div class="tut-lux-frame" aria-hidden="true"><span class="tut-corner tl"></span><span class="tut-corner tr"></span><span class="tut-corner bl"></span><span class="tut-corner br"></span><div class="tut-shimmer"></div></div>
+        <div class="tutorial-header lux-head tut-head-min">
+          <div class="tutorial-progress" id="tutorialProgress"></div>
+          <h2 id="tutorialTitle">👆</h2>
+        </div>
+        <div class="tutorial-stage lux-stage" id="tutorialStage">
+          <div class="tut-scene tut-scene-interactive" data-scene="interactive">
+            <p class="tut-interactive-hint" id="tutInteractiveHint"></p>
+          </div>
+          <div class="tut-scene tut-scene-overview" data-scene="overview">
+            <div class="tut-overview-row">
+              <div class="tut-overview-tile"><span>▶</span><small data-chip="0"></small></div>
+              <div class="tut-overview-tile"><span>▲</span><small data-chip="1"></small></div>
+              <div class="tut-overview-tile"><span>🎁</span><small data-chip="2"></small></div>
+              <div class="tut-overview-tile"><span>🎨</span><small data-chip="3"></small></div>
+            </div>
+          </div>
+        </div>
+        <div class="tutorial-nav lux-nav">
+          <button class="big-btn purple hidden" id="tutorialBackBtn" type="button">GERİ</button>
+          <button class="big-btn green lux-next" id="tutorialNextBtn" type="button">İLERİ</button>
+        </div>
+        <div class="tutorial-skip-wrap">
+          <button class="big-btn ghost lux-skip" id="tutorialSkipBtn" type="button">GEÇ</button>
+        </div>
+      </div>
+    </section>
+    <section id="screenPrivacy" class="modal-screen privacy-screen">
+      <div class="modal-card privacy-card">
+        <h2>BlockMir Gizlilik Politikası</h2>
+        <div class="privacy-text">
+          <p>BlockMir kullanıcı hesabı oluşturmaz, konum bilgisi toplamaz, reklam kimliği kullanmaz ve kişisel verileri geliştiriciye göndermez.</p>
+          <p>Oyun; skor, seviye, coin, ayarlar, başarımlar ve isteğe bağlı seçilen tema fotoğrafı gibi bilgileri yalnızca kullanıcının cihazında saklar.</p>
+          <p>Kullanıcı tarafından seçilen fotoğraf yalnızca oyun içinde arka plan/tema amacıyla kullanılır ve geliştiriciye gönderilmez.</p>
+          <p>BlockMir gerçek para, bahis, kumar veya para ödülü içermez. Oyun içindeki coinler yalnızca oyun içi ilerleme ve kozmetik seçenekler için kullanılır.</p>
+          <p>İletişim: oguzhan.7796@gmail.com</p>
+        </div>
+        <button class="big-btn green" id="privacyCloseBtn" type="button">KAPAT</button>
+      </div>
+    </section>
+    <div id="dragLayer"></div>
+    <div id="tutPlayDock" class="tut-play-dock hidden">
+      <div class="tut-play-dots" id="tutPlayDots"></div>
+      <h2 class="tut-play-title" id="tutPlayTitle">👆</h2>
+      <div class="tut-play-actions">
+        <button class="big-btn ghost lux-skip" id="tutPlaySkip" type="button">GEÇ</button>
+        <button class="big-btn green lux-next" id="tutPlayNext" type="button" disabled>İLERİ</button>
+      </div>
+    </div>
+  </div>
+  <script src="js/blockmir-i18n.js"></script>
+  <script src="js/blockmir-i18n-world.js"></script>
+  <script src="js/blockmir-catalog.js"></script>
+  <script src="js/blockmir-daily.js"></script>
+  <script src="js/blockmir-audio.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

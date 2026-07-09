@@ -1,0 +1,61 @@
+BlockMir — iOS / App Store (ayri klasor)
+========================================
+
+Bu klasor Android / Google Play projesinden BAGIMSIZDIR.
+BlockMir_AndroidStudio_PlayStore dosyalarina DOKUNMAZ.
+
+Konum:
+  BlockMir1_PlayStore\BlockMir_iOS_AppStore\
+
+Mac sart mi?
+----------
+  - Klasoru hazirlamak, web kopyalamak: WINDOWS OK (simdi yapildi)
+  - iPhone'da calistirmak / App Store'a yuklemek: MAC GEREKLI
+    (kendi Mac, arkadas Mac, internet kafe Mac, veya Codemagic bulut Mac)
+
+Mac yoksa alternatif:
+  - codemagic.yaml dosyasi var (bulut build)
+  - https://codemagic.io
+
+Hizli baslangic (Windows) — HAZIR
+-------------------------------
+[x] Oyun www/ icine senkronlandi (guncel surum)
+[x] AppIcon 1024x1024 eklendi
+[x] Detay: HAZIR_DURUM.txt
+
+Guncelleme icin:
+1) BlockMir_WebApp_PlayStore'da oyunu duzenle
+2) SYNC_WEBAPP.bat calistir
+3) Play Store / Android projesine dokunulmaz
+
+Mac'te (Xcode) veya Codemagic
+-----------------------------
+Codemagic (Mac yok): codemagic.yaml + GitHub repo
+Mac varsa:
+1) BlockMir.xcodeproj ac
+2) Signing -> Team: Apple Developer (oguzhanogul7795@gmail.com)
+3) Archive -> App Store Connect
+
+www eksik uyarisi
+-----------------
+Once Windows'ta SYNC_WEBAPP.bat calistir.
+
+App Store Connect
+-----------------
+- Bundle ID: com.blockmir.game
+- Surum: 1.1.4 (115) — Android ile uyumlu
+- Gizlilik: Play'deki metin + cihazda veri
+- Ekran goruntuleri: iPhone 6.7" (1290x2796)
+
+iOS'ta henuz yok (v1.0)
+-----------------------
+- Game Center siralama (oyun calisir, tablo bos kalabilir)
+  Sonra eklenebilir.
+
+Guncelleme akisi
+----------------
+1) BlockMir_WebApp_PlayStore'da oyunu guncelle (her zamanki gibi)
+2) SYNC_WEBAPP.bat calistir
+3) Mac'te yeniden Archive / yukle
+
+Iletisim / destek: oguzhan.7796@gmail.com

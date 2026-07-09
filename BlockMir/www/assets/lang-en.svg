@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="English">
+  <defs>
+    <clipPath id="flagClip"><circle cx="64" cy="64" r="57"/></clipPath>
+    <radialGradient id="rim" cx="34%" cy="20%" r="78%">
+      <stop offset="0" stop-color="#fff" stop-opacity=".32"/>
+      <stop offset=".45" stop-color="#fff" stop-opacity=".05"/>
+      <stop offset="1" stop-color="#000" stop-opacity=".26"/>
+    </radialGradient>
+    <filter id="drop" x="-18%" y="-18%" width="136%" height="136%">
+      <feDropShadow dx="0" dy="7" stdDeviation="6" flood-color="#000" flood-opacity=".34"/>
+    </filter>
+  </defs>
+  <circle cx="64" cy="64" r="57" fill="#012169" filter="url(#drop)"/>
+  <g clip-path="url(#flagClip)">
+    <rect width="128" height="128" fill="#012169"/>
+    <path stroke="#fff" stroke-width="28" d="M-12 3 140 125M140 3-12 125"/>
+    <path stroke="#c8102e" stroke-width="14" d="M-12 3 140 125M140 3-12 125"/>
+    <path stroke="#fff" stroke-width="34" d="M64-8v144M-8 64h144"/>
+    <path stroke="#c8102e" stroke-width="20" d="M64-8v144M-8 64h144"/>
+  </g>
+  <circle cx="64" cy="64" r="57" fill="url(#rim)"/>
+  <circle cx="64" cy="64" r="56" fill="none" stroke="#fff" stroke-opacity=".34" stroke-width="2"/>
+</svg>

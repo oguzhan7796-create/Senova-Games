@@ -1,0 +1,20 @@
+BlockMir — Gerçek imza ses (Yol 2)
+=====================================
+Bu klasore kendi WAV dosyalarini koy; build scripti otomatik kullanir.
+
+Muzik (loop, 44.1 kHz mono/stereo onerilir):
+  music_menu.wav
+  music_game.wav
+  music_adventure.wav
+
+SFX (opsiyonel — yoksa imza uretici doldurur):
+  tap.wav  place.wav  clear.wav  combo.wav
+  bad.wav  coin.wav   win.wav    ui.wav
+
+Suno / DAW ipucu — BlockMir DNA:
+  Ton: C major / A minor
+  Motif: C-E-G-A (523 / 659 / 784 / 880 Hz)
+  Stil: yumusak pad + pluck arpej + hafif davul
+  Menu: sicak, davetkar | Oyun: ritmik, odakli | Macera: biraz gerilimli
+
+Degistirdikten sonra: BUILD_DEBUG_APK.bat

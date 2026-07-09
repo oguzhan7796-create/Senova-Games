@@ -1,0 +1,59 @@
+/* Premium tutorial + boot + language pick */
+.tut-play-dock{position:fixed;left:0;right:0;bottom:0;z-index:11000;padding:12px 16px calc(14px + env(safe-area-inset-bottom,0));background:linear-gradient(180deg,transparent,#070212ee 28%,#070212fa);pointer-events:none}
+.tut-play-dock:not(.hidden){pointer-events:auto}
+.tut-play-dock.hidden{display:none!important}
+.tut-play-dots{display:flex;justify-content:center;gap:6px;margin-bottom:8px}
+.tut-play-title{margin:0 0 12px;text-align:center;font-size:clamp(36px,10vw,48px);line-height:1;text-shadow:0 4px 24px #00000088}
+.tut-play-actions{display:flex;gap:10px;max-width:min(420px,94vw);margin:0 auto}
+.tut-play-actions .big-btn{flex:1;height:48px!important;font-size:15px!important}
+.tut-play-actions .lux-skip{flex:.72;opacity:.55}
+body.tutorial-play .game-actions,body.tutorial-play #pauseBtn{display:none!important}
+body.tutorial-play .game-top .pill.record{display:none!important}
+body.tutorial-play .game-screen{padding-bottom:120px}
+body.tutorial-play .cell.hint{box-shadow:inset 0 0 0 2px #ffd66a,inset 0 0 18px #ffd66a55!important;animation:tutHintPulse 1.2s ease-in-out infinite}
+@keyframes tutHintPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.15)}}
+.lux-nav .big-btn.tut-next-locked{opacity:.42!important;cursor:not-allowed!important;box-shadow:0 8px 0 #0a3d32,0 0 0 #42dfba00!important}
+.tut-minimal .tut-head-min{padding:18px 24px 8px}
+.tut-minimal .tutorial-step-label,.tut-minimal .tutorial-badge{display:none!important}
+.tut-minimal .lux-head h2{font-size:clamp(32px,8vw,42px)!important;margin:4px 0 0!important}
+.tut-minimal .lux-stage{min-height:280px;padding:4px 20px 10px}
+.tut-minimal .lux-nav .big-btn.lux-next{font-size:20px!important;letter-spacing:.12em}
+.tut-minimal .lux-skip{opacity:.55;height:38px!important}
+.tut-overview-row{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;padding:20px 8px 8px;max-width:320px;margin:0 auto}
+.tut-overview-tile{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px 12px;border-radius:20px;background:linear-gradient(180deg,#ffffff14,#ffffff06);border:1px solid #ffffff24;box-shadow:0 8px 24px #00000044}
+.tut-overview-tile span{font-size:36px;line-height:1}
+.tut-overview-tile small{font-size:11px;font-weight:800;color:#dcc8f5;letter-spacing:.06em}
+.lang-pick-screen{background:radial-gradient(ellipse 100% 80% at 50% 10%,#4a187888,#070212ee 60%,#030108f8)!important}
+.lang-pick-card{position:relative;max-width:min(420px,94vw);margin:auto;padding:28px 22px 24px;border-radius:28px;text-align:center;background:linear-gradient(165deg,#3d1868f2,#0c0618fa);box-shadow:0 0 0 1px #ffd66a44,0 24px 64px #000000aa,inset 0 1px 0 #ffffff22;animation:langPickIn .55s cubic-bezier(.16,1.1,.22,1)}
+@keyframes langPickIn{from{opacity:0;transform:translateY(20px) scale(.96)}to{opacity:1;transform:none}}
+.lang-pick-glow{position:absolute;inset:-20%;background:radial-gradient(circle at 50% 0,#ffd66a22,transparent 55%);pointer-events:none}
+.lang-pick-logo{border-radius:22px;box-shadow:0 12px 32px #00000066,0 0 24px #b66dff44;margin-bottom:12px}
+.lang-pick-card h2{margin:0;font-size:28px;background:linear-gradient(180deg,#fff2a8,#ffdc4f);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lang-pick-sub{margin:4px 0 18px;font-size:13px;color:#b8a0d8;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
+.lang-pick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-height:min(52vh,360px);overflow:auto;padding:4px}
+.lang-pick-grid button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;border-radius:16px;border:2px solid #ffffff20;background:linear-gradient(180deg,#ffffff12,#ffffff05);color:#f3ebff;font-weight:800;font-size:11px;cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s}
+.lang-pick-grid button:active{transform:scale(.96)}
+.lang-pick-grid button .lp-flag{font-size:28px;line-height:1}
+.lang-pick-grid button.active,.lang-pick-grid button:focus-visible{border-color:#ffd66a88;box-shadow:0 0 20px #ffd66a33}
+body:not(.app-ready) #screenMenu.active{opacity:0;pointer-events:none}
+body.app-ready #screenMenu.active{animation:bootMenuIn .65s cubic-bezier(.16,1,.22,1) forwards}
+@keyframes bootMenuIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+/* Premium boot — GPU only, no blur (WebView donma fix) */
+body.splash-controlled .company-splash{animation:none!important;opacity:1!important;visibility:visible!important}
+body.splash-controlled .company-splash img{animation:none!important;opacity:1!important;transform:scale(1)!important}
+body.boot-phase-exit .company-splash{opacity:0!important;transform:scale(1.05)!important;transition:opacity .5s ease,transform .5s cubic-bezier(.16,1,.22,1)!important}
+.boot-premium-curtain{position:fixed;inset:0;z-index:49999;pointer-events:none;opacity:0;visibility:hidden;background:radial-gradient(ellipse 90% 70% at 50% 45%,#4a1878cc,#070212f5 55%,#030108fa);will-change:opacity}
+.boot-premium-curtain.active{opacity:1;visibility:visible;animation:bootCurtainIn .62s cubic-bezier(.16,1,.22,1) forwards}
+.boot-premium-shine{position:absolute;inset:-10% -30%;background:linear-gradient(105deg,transparent 44%,#ffffff18 49%,#ffd66a99 50%,#ffffff18 51%,transparent 56%);transform:translate3d(-120%,0,0);will-change:transform}
+.boot-premium-curtain.active .boot-premium-shine{animation:bootGoldSweep .62s cubic-bezier(.16,1,.22,1) forwards}
+.boot-premium-logo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.82);opacity:0;will-change:transform,opacity}
+.boot-premium-curtain.active .boot-premium-logo{animation:bootLogoPop .55s .12s cubic-bezier(.16,1.15,.22,1) forwards}
+.boot-premium-logo img{border-radius:22px;box-shadow:0 16px 48px #000000aa,0 0 32px #ffd66a44}
+@keyframes bootCurtainIn{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
+@keyframes bootGoldSweep{to{transform:translate3d(120%,0,0)}}
+@keyframes bootLogoPop{to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+#screenLangPick.lang-pick-enter:not(.lang-pick-visible){opacity:0}
+#screenLangPick.lang-pick-enter.lang-pick-visible{animation:langScreenIn .55s cubic-bezier(.16,1,.22,1) forwards}
+#screenLangPick.lang-pick-enter.lang-pick-visible .lang-pick-card{animation:langPickPremiumIn .65s cubic-bezier(.16,1.1,.22,1) forwards}
+@keyframes langScreenIn{from{opacity:0}to{opacity:1}}
+@keyframes langPickPremiumIn{from{opacity:0;transform:translateY(24px) scale(.94)}to{opacity:1;transform:none}}

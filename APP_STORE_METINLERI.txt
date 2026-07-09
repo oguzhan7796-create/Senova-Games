@@ -1,0 +1,174 @@
+BlockMir — App Store Connect Metinleri
+======================================
+Klasör: BlockMir_iOS_AppStore
+Bundle ID: com.blockmir.game
+Sürüm: 1.1.4 (115) — Android ile uyumlu
+
+Bu dosyayı App Store Connect > Uygulama > Türkçe (ve İngilizce) sayfasına kopyala-yapıştır.
+
+
+────────────────────────────────────────
+TÜRKÇE
+────────────────────────────────────────
+
+【Uygulama Adı】 (max 30)
+BlockMir
+
+【Alt Başlık / Subtitle】 (max 30) — 27 karakter
+Blok bulmaca, macera, kombo
+
+【Tanıtım Metni / Promotional Text】 (max 170) — 135 karakter
+Renkli blokları yerleştir, satır temizle! 100 seviye macera, günlük ödül, başarımlar ve zengin kişiselleştirme. İnternetsiz, reklamsız.
+
+【Anahtar Kelimeler / Keywords】 (max 100, virgülle, boşluksuz) — 63 karakter
+blok,bulmaca,puzzle,block,klasik,macera,offline,kombo,zeka,oyun
+
+【Açıklama / Description】 (max 4000) — 2531 karakter
+
+BlockMir, renkli blokları tahtaya yerleştirerek satır ve sütunları temizlediğin modern bir blok bulmaca oyunudur. Alttaki blokları sürükleyip bırak, satır veya sütun doldur, temizle ve kombo yap. 100 seviyelik macera, günlük ödüller, başarımlar ve zengin kişiselleştirme ile hem kısa molalarda hem uzun oturumlarda keyifli bir deneyim sunar.
+
+NASIL OYNANIR?
+1. Alttaki bloklardan birini seç ve tahtaya sürükle
+2. Satır veya sütun tamamen dolduğunda temizlenir
+3. Arka arkaya temizlik yaparak kombo kur, bonus skor ve Block Parası kazan
+4. Yerleştirilecek hamle kalmadığında oyun biter
+
+KLASİK MOD
+• 8x8 Hızlı Oyun — Sıkışık tahta, hızlı tempo, klasik BlockMir hissi
+• 10x10 Geniş Tahta — Daha uzun oyunlar, daha yüksek skor ve geniş strateji
+• Her iki modda ayrı rekor takibi ve kaldığın yerden devam et
+
+MACERA MODU — 100 SEVİYE, 10 BÖLÜM
+Mir Bahçesi'nden Mir Zirvesi'ne epik yolculuk:
+Mir Bahçesi, Şeker Patikası, Geonun Derinliği, Kristal Dağ, Okyanus Rotası, Volkan Çemberi, Aurora Köprüsü, Galaksi Kapısı, Taç Krallığı, Mir Zirvesi
+
+7 görev türü: Skor Avı, Çizgi Operasyonu, Zincir Ustası, Patlama Dalgası, Strateji Rotası, Usta Sınavı ve Tek Şans. Seviyeleri tamamla, süreye göre 1–3 yıldız kazan, tekrar oynayarak yıldızlarını artır.
+
+YILDIZ YOLU
+Macera yıldızlarınla ödül aç: Block Parası, premium temalar, özel bloklar, patlama efektleri ve 300 yıldızda Mir Efsanesi Seti.
+
+GÜNLÜK ÖDÜL
+Her gün giriş yap, Block Parası kazan. 7 günlük seri yolunda ödül büyür. 3. günden bonus ipucu, 5. günden bonus geri al.
+
+BAŞARIMLAR — 22 GÖREV
+Skor, kombo, temizlik, macera ilerlemesi ve koleksiyon hedefleri. Her başarım Block Parası ödülü verir.
+
+İSTATİSTİKLER VE ROZETLER
+Profil, XP çubuğu, 8x8/10x10 rekorlar, macera yıldız toplamı, en iyi kombo ve 7 rozet.
+
+SEVİYE VE XP
+Her oyun ve başarım XP kazandırır. Her 20. seviyede ek Block Parası bonusu.
+
+BLOCK MARKET
+Tahta temaları (17+), blok görünümleri (26+), patlama efektleri (29+) ve güç paketleri.
+
+KİŞİSELLEŞTİRME
+Hazır temalar veya galeriden kendi fotoğrafın. Renk körlüğü dostu mod.
+
+OYUN İÇİ ARAÇLAR
+Akıllı ipucu, geri al, kombo sistemi.
+
+AYARLAR
+Müzik/ses/titreşim, grafik kalitesi, Türkçe/İngilizce.
+
+DİĞER
+İnternetsiz oynanış, reklamsız deneyim, veriler yalnızca cihazında saklanır.
+
+GÜVENLİK
+BlockMir gerçek para, bahis, kumar veya para ödülü içermez. Block Parası yalnızca oyun içi ilerleme ve kozmetik için kullanılır. Skor, seviye, coin, ayarlar, başarımlar ve tema fotoğrafı cihazında kalır; geliştiriciye gönderilmez.
+
+BlockMir — Zekanı bloklarla yansıt!
+Senova Games
+
+
+────────────────────────────────────────
+ENGLISH (App Store — secondary locale)
+────────────────────────────────────────
+
+【Subtitle】 (max 30)
+Block puzzle adventure
+
+【Promotional Text】 (max 170)
+Place colorful blocks, clear lines! 100-level adventure, daily rewards, achievements, and deep customization. Offline, ad-free.
+
+【Keywords】 (max 100)
+block,puzzle,classic,adventure,offline,combo,brain,game,casual,lines
+
+【Description】 (max 4000)
+
+BlockMir is a modern block puzzle game: drag colorful blocks onto the board, fill rows and columns, and clear them. With a 100-level adventure path, daily rewards, achievements, and rich customization, it is perfect for quick breaks and longer sessions.
+
+HOW TO PLAY
+1. Drag a block from the tray onto the board
+2. A full row or column clears automatically
+3. Chain clears for combos, bonus score, and Block Coins
+4. The run ends when no valid moves remain
+
+CLASSIC MODE
+• 8x8 Quick Game — Tight board, fast pace, classic BlockMir feel
+• 10x10 Wide Board — Longer runs, higher scores, deeper strategy
+• Separate high scores and resume where you left off
+
+ADVENTURE — 100 LEVELS, 10 WORLDS
+From Mir Garden to Mir Summit across ten themed chapters with unique board themes, block skins, and clear effects.
+
+Mission types include Score Hunt, Line Operation, Chain Master, Burst Wave, Strategy Route, Master Trial, and One Chance (no undo). Earn 1–3 stars per level and replay for better stars.
+
+STAR ROAD
+Unlock rewards with adventure stars: Block Coins, premium themes, block skins, clear effects, and the Mir Legend Set at 300 stars.
+
+DAILY REWARDS
+Log in daily for Block Coins. A 7-day streak grows your reward. Bonus hints from day 3, bonus undos from day 5.
+
+22 ACHIEVEMENTS
+Score, combo, clear, adventure, and collection goals — each pays Block Coins.
+
+STATS AND BADGES
+Profile, XP bar, separate 8x8/10x10 records, adventure star total, best combo, and 7 badges.
+
+LEVEL AND XP
+Earn XP from play and achievements. Bonus Block Coins every 20 player levels.
+
+BLOCK MARKET
+17+ board themes, 26+ block skins, 29+ clear effects, and power packs.
+
+CUSTOMIZATION
+Preset themes or your own photo from the gallery. Colorblind-friendly mode with shape markers on blocks.
+
+IN-GAME TOOLS
+Smart hints, undo, and combo scoring.
+
+SETTINGS
+Music, sound, vibration, graphics quality, Turkish/English.
+
+OTHER
+Offline play, ad-free experience, data stored only on your device.
+
+BlockMir has no real money, betting, gambling, or cash prizes. Block Coins are for in-game progression and cosmetics only.
+
+BlockMir — Reflect your mind in blocks!
+Senova Games
+
+
+────────────────────────────────────────
+APP STORE CONNECT — DİĞER ALANLAR
+────────────────────────────────────────
+
+Kategori (birincil): Games > Puzzle
+Kategori (ikincil): Games > Casual
+
+Yaş derecelendirmesi: 4+ (şiddet, kumar, gerçek para yok)
+
+Gizlilik:
+- Veri toplanmıyor (oyun cihazda saklar)
+- Fotoğraf erişimi: yalnızca isteğe bağlı arka plan teması
+
+Destek URL: (web siten veya e-posta sayfası)
+Gizlilik Politikası URL: (Play Store ile aynı sayfa kullanılabilir)
+
+Ekran görüntüsü boyutu:
+- iPhone 6.7" → 1290 x 2796 (zorunlu)
+- iPhone 6.5" → 1284 x 2778 (yedek)
+- iPad isteğe bağlı
+
+İletişim: oguzhan.7796@gmail.com

@@ -1,0 +1,15 @@
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+
+# macOS
+.DS_Store
+
+# Secrets — asla commit etme
+*.p12
+*.mobileprovision
+*.cer
+AuthKey_*.p8

@@ -1,0 +1,10 @@
+Zorunlu dosyalar (silinmez — tek kaynak: BlockMir_WebApp_PlayStore\assets)
+- icon-512.png   Ana menu maskot
+- icon-192.png   manifest / PWA
+- mir-soft.jpg   Varsayilan tahta temasi
+- senova-splash-fullscreen.png   Acilis splash
+- lang-tr.svg / lang-en.svg   Dil secimi
+
+Android launcher: app\src\main\res\mipmap-*\ic_launcher*.png
+Derleme oncesi: tools\verify-assets.bat
+Kurtarma: tools\restore-assets.bat

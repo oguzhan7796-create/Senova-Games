@@ -1,0 +1,61 @@
+# BlockMir iOS — Codemagic (Mac olmadan build + App Store yukleme)
+# https://codemagic.io
+#
+# Kurulum (Codemagic panelinde bir kez):
+# 1. Add application -> GitHub repo (BlockMir_iOS_AppStore)
+# 2. Team settings -> Integrations -> Apple Developer Portal (API key veya Apple ID)
+# 3. Code signing identities -> iOS -> com.blockmir.game
+# 4. App Store Connect -> API key (yukleme icin)
+
+workflows:
+  blockmir-ios-release:
+    name: BlockMir iOS App Store
+    max_build_duration: 90
+    instance_type: mac_mini_m2
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.blockmir.game
+      vars:
+        XCODE_PROJECT: BlockMir.xcodeproj
+        XCODE_SCHEME: BlockMir
+        BUNDLE_ID: com.blockmir.game
+        APP_STORE_APP_ID: REPLACE_AFTER_APP_STORE_CREATE
+      xcode: latest
+    scripts:
+      - name: www kontrol
+        script: |
+          if [ ! -f "BlockMir/www/index.html" ]; then
+            echo "HATA: BlockMir/www/index.html yok"
+            exit 1
+          fi
+          if [ ! -f "BlockMir/www/game.js" ]; then
+            echo "HATA: BlockMir/www/game.js yok"
+            exit 1
+          fi
+          echo "www OK — $(wc -c < BlockMir/www/game.js) byte game.js"
+      - name: Xcode archive
+        script: |
+          xcodebuild -project "$XCODE_PROJECT" \
+            -scheme "$XCODE_SCHEME" \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/BlockMir.xcarchive \
+            archive
+      - name: IPA export
+        script: |
+          xcodebuild -exportArchive \
+            -archivePath build/BlockMir.xcarchive \
+            -exportOptionsPlist exportOptions.plist \
+            -exportPath build/ios
+          ls -la build/ios/
+    artifacts:
+      - build/ios/*.ipa
+      - build/BlockMir.xcarchive
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        submit_to_app_store: false
+        beta_groups:
+          - Internal Testers

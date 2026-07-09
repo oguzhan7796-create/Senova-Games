@@ -1,0 +1,61 @@
+BlockMir — iOS App Store HAZIR DURUM
+====================================
+Tarih: 9 Temmuz 2026
+Konum: f:\Senova Games Cuncor\BlockMir1_PlayStore\BlockMir_iOS_AppStore\
+
+SENIN TIKLAMAN GEREKMEYEN ISLER (TAMAMLANDI)
+-------------------------------------------
+[x] iOS klasoru workspace'e kopyalandi
+[x] En guncel oyun (Desktop WebApp, 225 KB) workspace + iOS www'ye senkronlandi
+[x] Android / Play Store projesine DOKUNULMADI
+[x] App Store ikonu 1024x1024 olusturuldu (AppIcon-1024.png)
+[x] Bundle ID: com.blockmir.game
+[x] Surum: 1.1.4 (build 115)
+[x] codemagic.yaml guncellendi (archive + TestFlight)
+[x] APP_STORE_METINLERI.txt (aciklama, anahtar kelime, EN)
+[x] gizlilik-politikasi.html (App Store URL icin)
+[x] .gitignore (Xcode / sertifika dosyalari)
+
+OYUN ICERIGI (www/)
+-------------------
+[x] index.html, game.js, style.css
+[x] js/ modulleri (catalog, i18n, daily, audio)
+[x] css/tutorial-lux.css
+[x] assets/ (ikonlar, sesler, gorseller)
+
+SENIN YAPACAGIN (3 ADIM — hesap acilinca)
+-----------------------------------------
+1) App Store Connect -> Apps -> + -> BlockMir olustur
+   Metinler: APP_STORE_METINLERI.txt
+
+2) GitHub'a bu klasoru yukle:
+   BlockMir_iOS_AppStore (tum icerik)
+
+3) Codemagic -> Add app -> GitHub -> signing ayarla -> Build
+
+GIZLILIK URL
+------------
+gizlilik-politikasi.html dosyasini GitHub Pages veya sitene yukle.
+Ornek: https://KULLANICI.github.io/blockmir-ios/gizlilik-politikasi.html
+App Store Connect'te bu URL'yi gir.
+
+EKRAN GORUNTULERI (henuz yok — telefon veya simulator)
+-----------------------------------------------------
+iPhone 6.7" : 1290 x 2796 px, en az 3 adet
+Onerilen: Ana menu, Klasik oyun, Macera yolu
+
+APPLE ID
+--------
+Odeme: oguzhanogul7795@gmail.com (makbuzdaki hesap)
+Destek: oguzhan.7796@gmail.com
+
+ANDROID NOTU
+------------
+Play Store surumu ayri klasorde; eski web (166 KB) Android assets'te kaldi.
+iOS icin guncel surum kullaniliyor. Android guncellemesi ayri is.
+
+GUNCELLEME (ileride)
+--------------------
+1) BlockMir_WebApp_PlayStore'da oyunu duzenle
+2) SYNC_WEBAPP.bat calistir
+3) GitHub push + Codemagic rebuild
