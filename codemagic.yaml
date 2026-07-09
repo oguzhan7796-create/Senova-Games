@@ -1,11 +1,12 @@
-# BlockMir iOS — Codemagic (Mac olmadan build + App Store yukleme)
-# https://codemagic.io
+# BlockMir iOS — Codemagic
+# Repo: oguzhan7796-create/Senova-Games
 #
-# Kurulum (Codemagic panelinde bir kez):
-# 1. Add application -> GitHub repo (BlockMir_iOS_AppStore)
-# 2. Team settings -> Integrations -> Apple Developer Portal (API key veya Apple ID)
-# 3. Code signing identities -> iOS -> com.blockmir.game
-# 4. App Store Connect -> API key (yukleme icin)
+# Codemagic panelinde (bir kez):
+# 1. Team settings -> codemagic.yaml settings -> ON
+# 2. iOS code signing -> com.blockmir.game (App Store)
+# 3. Build calistir -> IPA indir veya Transporter ile yukle
+#
+# TestFlight otomatik yukleme icin sonra App Store Connect API key eklenir.
 
 workflows:
   blockmir-ios-release:
@@ -20,7 +21,6 @@ workflows:
         XCODE_PROJECT: BlockMir.xcodeproj
         XCODE_SCHEME: BlockMir
         BUNDLE_ID: com.blockmir.game
-        APP_STORE_APP_ID: REPLACE_AFTER_APP_STORE_CREATE
       xcode: latest
     scripts:
       - name: www kontrol
@@ -33,7 +33,7 @@ workflows:
             echo "HATA: BlockMir/www/game.js yok"
             exit 1
           fi
-          echo "www OK — $(wc -c < BlockMir/www/game.js) byte game.js"
+          echo "www OK"
       - name: Xcode archive
         script: |
           xcodebuild -project "$XCODE_PROJECT" \
@@ -52,10 +52,3 @@ workflows:
     artifacts:
       - build/ios/*.ipa
       - build/BlockMir.xcarchive
-    publishing:
-      app_store_connect:
-        auth: integration
-        submit_to_testflight: true
-        submit_to_app_store: false
-        beta_groups:
-          - Internal Testers
