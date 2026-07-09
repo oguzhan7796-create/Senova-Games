@@ -4,15 +4,16 @@
 # Codemagic panelinde (bir kez):
 # 1. Team settings -> codemagic.yaml settings -> ON
 # 2. iOS code signing -> com.blockmir.game (App Store)
-# 3. Build calistir -> IPA indir veya Transporter ile yukle
-#
-# TestFlight otomatik yukleme icin sonra App Store Connect API key eklenir.
+# 3. Team integrations -> Developer Portal -> API key adi: Codemagic
+# 4. Build calistir -> IPA otomatik App Store Connect'e yuklenir
 
 workflows:
   blockmir-ios-release:
     name: BlockMir iOS App Store
     max_build_duration: 90
     instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: Codemagic
     environment:
       ios_signing:
         distribution_type: app_store
@@ -44,3 +45,6 @@ workflows:
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
