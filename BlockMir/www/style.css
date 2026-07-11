@@ -1,4 +1,15 @@
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:#160626;color:white;user-select:none}button{font:inherit;color:inherit;border:0;cursor:pointer;touch-action:manipulation}#app{position:relative;width:100vw;height:100vh;max-width:560px;margin:0 auto;background:radial-gradient(circle at 20% 10%,#563097 0,#1f0d3a 36%,#12051f 100%);overflow:hidden}.screen{position:absolute;inset:0;display:none;padding:18px}.screen.active{display:flex}.menu-screen{flex-direction:column;align-items:center;gap:14px}.top-mini{width:100%;display:flex;align-items:center;justify-content:space-between}.top-mini.clean{justify-content:space-between}.round{width:48px;height:48px;border-radius:50%;background:linear-gradient(#9062d7,#50238c);box-shadow:0 6px 0 #27103d,0 0 18px #ffffff22;font-weight:900}.pill{height:42px;min-width:86px;padding:0 14px;border-radius:20px;background:#0004;border:1px solid #fff2;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:900}.coin{color:#ffd45a}.brand-card{width:92%;max-width:410px;margin-top:4px;padding:18px 16px 12px;border-radius:30px;background:linear-gradient(160deg,#2b1250cc,#18082dd0);box-shadow:0 18px 42px #0008,inset 0 0 0 1px #fff1;text-align:center;position:relative;overflow:hidden}.brand-card:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 0,#ffcb6928,transparent 45%);pointer-events:none}.mascot-wrap{position:relative;margin:auto;width:156px;height:156px;border-radius:32px;display:grid;place-items:center;background:linear-gradient(#7543be,#361363);box-shadow:0 12px 26px #0009;overflow:hidden}.mascot-wrap img{width:100%;height:100%;object-fit:cover}.brand-title{position:relative;margin-top:-26px;font-size:46px;line-height:.9;font-weight:1000;letter-spacing:-3px;text-shadow:0 5px 0 #6d1734,0 10px 22px #000b}.brand-title span:first-child{color:#ffca3a}.brand-title span:last-child{color:#ff5176}.tagline{position:relative;display:inline-block;margin-top:8px;padding:7px 14px;border-radius:13px;background:#0007;font-weight:1000;font-size:13px;letter-spacing:.5px}.menu-buttons{display:flex;flex-direction:column;gap:14px;width:82%;max-width:380px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:#160626;color:white;user-select:none;-webkit-user-select:none}
+.board,.board-shell,#board,.cell,.piece,.piece-tray,#screenGame,#app{
+  -webkit-touch-callout:none;
+  -webkit-user-select:none;
+  user-select:none;
+  touch-action:manipulation;
+}
+.piece,.drag-preview{
+  touch-action:none;
+}
+button{font:inherit;color:inherit;border:0;cursor:pointer;touch-action:manipulation}#app{position:relative;width:100vw;height:100vh;max-width:560px;margin:0 auto;background:radial-gradient(circle at 20% 10%,#563097 0,#1f0d3a 36%,#12051f 100%);overflow:hidden}.screen{position:absolute;inset:0;display:none;padding:18px}.screen.active{display:flex}.menu-screen{flex-direction:column;align-items:center;gap:14px}.top-mini{width:100%;display:flex;align-items:center;justify-content:space-between}.top-mini.clean{justify-content:space-between}.round{width:48px;height:48px;border-radius:50%;background:linear-gradient(#9062d7,#50238c);box-shadow:0 6px 0 #27103d,0 0 18px #ffffff22;font-weight:900}.pill{height:42px;min-width:86px;padding:0 14px;border-radius:20px;background:#0004;border:1px solid #fff2;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:900}.coin{color:#ffd45a}.brand-card{width:92%;max-width:410px;margin-top:4px;padding:18px 16px 12px;border-radius:30px;background:linear-gradient(160deg,#2b1250cc,#18082dd0);box-shadow:0 18px 42px #0008,inset 0 0 0 1px #fff1;text-align:center;position:relative;overflow:hidden}.brand-card:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 0,#ffcb6928,transparent 45%);pointer-events:none}.mascot-wrap{position:relative;margin:auto;width:156px;height:156px;border-radius:32px;display:grid;place-items:center;background:linear-gradient(#7543be,#361363);box-shadow:0 12px 26px #0009;overflow:hidden}.mascot-wrap img{width:100%;height:100%;object-fit:cover}.brand-title{position:relative;margin-top:-26px;font-size:46px;line-height:.9;font-weight:1000;letter-spacing:-3px;text-shadow:0 5px 0 #6d1734,0 10px 22px #000b}.brand-title span:first-child{color:#ffca3a}.brand-title span:last-child{color:#ff5176}.tagline{position:relative;display:inline-block;margin-top:8px;padding:7px 14px;border-radius:13px;background:#0007;font-weight:1000;font-size:13px;letter-spacing:.5px}.menu-buttons{display:flex;flex-direction:column;gap:14px;width:82%;max-width:380px}
 .menu-group{display:flex;flex-direction:column;gap:10px;width:100%}
 .menu-group-label{
   display:block;margin:0 0 2px;font-size:10px;font-weight:1000;letter-spacing:.38em;
@@ -2963,7 +2974,7 @@ body.vp-tablet.vp-landscape #app{max-width:100vw!important}
 }
 #screenGame .board{
   border-radius:clamp(15px,3vw,22px)!important;
-  background:linear-gradient(rgba(34,14,57,.38),rgba(34,14,57,.38)),var(--boardPhoto,url('assets/mir-soft.jpg')) center/cover!important;
+  background:linear-gradient(rgba(34,14,57,.45),rgba(34,14,57,.45)),var(--boardPhoto,url('assets/mir-soft.jpg')) center/cover!important;
   box-shadow:
     inset 0 0 0 2px #ffffff16,
     inset 0 0 32px #00000055,
@@ -3524,10 +3535,10 @@ body.seg-low #screenGame .board-shell::after,
 body.seg-ultra #screenGame .board-shell::after{
   box-shadow:none!important;
 }
-body.perf-low #screenGame .board,
-body.perf-ultra #screenGame .board,
-body.seg-low #screenGame .board,
-body.seg-ultra #screenGame .board{
+body.perf-low:not([data-graphics="max"]):not([data-graphics="high"]) #screenGame .board,
+body.perf-ultra:not([data-graphics="max"]):not([data-graphics="high"]) #screenGame .board,
+body.seg-low:not([data-graphics="max"]):not([data-graphics="high"]) #screenGame .board,
+body.seg-ultra:not([data-graphics="max"]):not([data-graphics="high"]) #screenGame .board{
   background:#241139!important;
   box-shadow:inset 0 0 0 1px #ffffff16!important;
 }

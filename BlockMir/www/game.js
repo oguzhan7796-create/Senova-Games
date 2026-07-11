@@ -3,7 +3,7 @@
   const screens = ['screenMenu','screenClassic','screenGame','screenAdventure','screenCustomize','screenDaily','screenAchievements','screenStats','screenSettings'];
   const LS = 'blockmir_save_';
   const RUN_KEY = LS + 'activeRun';
-  const APP_VERSION = '1.1.4';
+  const APP_VERSION = '1.1.5';
   const DEBUG_UNLOCK_ALL = false;
   const TUTORIAL_VERSION = 11;
   const ADVENTURE_MAX_LEVEL = 100;
@@ -76,7 +76,7 @@
     musicVol: readNumber('musicVol', 70),
     sfxVol: readNumber('sfxVol', 100),
     vibrate: readStore('vibrate','1')!=='0',
-    graphics: readStore('graphics','auto') || 'auto',
+    graphics: readStore('graphics','max') || 'max',
     lang: SUPPORTED_LANGS.includes(readStore('lang','tr')) ? readStore('lang','tr') : 'tr',
     colorblind: readStore('colorblind','0')==='1',
     chestSalt: readStore('chestSalt','')||'',
@@ -567,6 +567,15 @@
   }
   function isCoarsePointer(){ return !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches); }
   function isAndroid(){ return ua.includes('android'); }
+  function isApple(){
+    const m=String(nativeDevice.manufacturer||'').toLowerCase();
+    const p=String(nativeDevice.product||'').toLowerCase();
+    return m==='apple' || p==='ios' || /iphone|ipad|ipod/.test(ua);
+  }
+  function allowFullVisuals(){
+    const g=data.graphics||'auto';
+    return g==='max' || g==='high';
+  }
   function deviceMemory(){ return Number(navigator.deviceMemory || 0); }
   function knownJankDevice(){
     return /tecno|pova|infinix|itel|sm-a26|galaxy a26|a26 5g|max\s*19\s*pro\s*s|max\s*19|19\s*pro\s*s|\bs\s*19\b|\bs19\b/.test(nativeText());
@@ -633,7 +642,12 @@
     if(tablet==='tablet-7' && (screenPixels()>1800000 || !ram || ram<6144)) level=Math.max(level,2);
     else if(tablet==='tablet-10' && ram>0 && ram<4096) level=Math.max(level,2);
     else if(tablet==='tablet-10' && ram>=6144) level=Math.min(level,1);
-    if(Number(nativeDevice.sdk||0) && Number(nativeDevice.sdk)<29) level=Math.max(level,2);
+    if(Number(nativeDevice.sdk||0) && Number(nativeDevice.sdk)<29 && !isApple()) level=Math.max(level,2);
+    if(isApple()){
+      if(ram>=6144) level=0;
+      else if(ram>=3584) level=Math.min(level,1);
+      else level=Math.min(level,2);
+    }
     return Math.max(0, Math.min(3, level));
   }
   function syncRamTightProfile(){
@@ -839,16 +853,19 @@
     const level=perfLevel();
     const fxLevel=fxBudgetLevel();
     const segment=csvDeviceLevel();
+    const stripVisuals=!allowFullVisuals();
+    const effLevel=stripVisuals ? level : Math.min(level,1);
+    const effFxLevel=stripVisuals ? fxLevel : Math.min(fxLevel,1);
     document.body.classList.toggle('ram-tight', ramTightDevice);
-    document.body.classList.toggle('perf-lite', level>=1);
-    document.body.classList.toggle('perf-low', level>=2);
-    document.body.classList.toggle('perf-ultra', level>=3);
-    document.body.classList.toggle('fx-lite', fxLevel>=1);
-    document.body.classList.toggle('fx-low', fxLevel>=2);
-    document.body.classList.toggle('fx-ultra', fxLevel>=3);
-    document.body.classList.toggle('seg-mid', segment>=1);
-    document.body.classList.toggle('seg-low', segment>=2);
-    document.body.classList.toggle('seg-ultra', segment>=3);
+    document.body.classList.toggle('perf-lite', effLevel>=1);
+    document.body.classList.toggle('perf-low', effLevel>=2);
+    document.body.classList.toggle('perf-ultra', effLevel>=3);
+    document.body.classList.toggle('fx-lite', effFxLevel>=1);
+    document.body.classList.toggle('fx-low', effFxLevel>=2);
+    document.body.classList.toggle('fx-ultra', effFxLevel>=3);
+    document.body.classList.toggle('seg-mid', segment>=1 && stripVisuals);
+    document.body.classList.toggle('seg-low', segment>=2 && stripVisuals);
+    document.body.classList.toggle('seg-ultra', segment>=3 && stripVisuals);
     document.body.dataset.perf = level>=3 ? 'ultra' : level>=2 ? 'low' : level>=1 ? 'lite' : 'full';
     document.body.dataset.fxperf = fxLevel>=3 ? 'ultra' : fxLevel>=2 ? 'low' : fxLevel>=1 ? 'lite' : 'full';
     document.body.dataset.devicetier = String(segment);
@@ -4198,7 +4215,13 @@
   
   window.BlockMirPlayGamesStatus = (status) => {
     const tr = data && data.lang === 'tr';
-    const messages = {
+    const ios = isApple();
+    const messages = ios ? {
+      signed_in: tr ? 'Game Center bağlantısı kuruldu.' : 'Connected to Game Center.',
+      sign_in_failed: tr ? 'Sıralama tablosu yakında iOS için eklenecek.' : 'Leaderboards coming soon on iOS.',
+      leaderboard_failed: tr ? 'Sıralama tablosu şu an kullanılamıyor.' : 'Leaderboard is not available right now.',
+      unknown_leaderboard: tr ? 'Bu mod için sıralama tablosu yok.' : 'No leaderboard for this mode.'
+    } : {
       signed_in: tr ? 'Google Play Games bağlantısı kuruldu.' : 'Connected to Google Play Games.',
       sign_in_failed: tr ? 'Google Play Games oturumu açılamadı. Hesabını ve internetini kontrol et.' : 'Could not sign in to Google Play Games. Check your account and connection.',
       leaderboard_failed: tr ? 'Liderlik tablosu açılamadı. Biraz sonra tekrar dene.' : 'The leaderboard could not be opened. Please try again.',
@@ -4247,7 +4270,10 @@
     data.graphics=value||'auto';
     try{ localStorage.setItem(LS+'graphicsUserSet','1'); }catch(_){}
     perfAutoLevel=0;
+    fpsLowStreak=0;
+    fpsGoodSince=0;
     updatePerfMode();
+    applyTheme();
     save(true);
     syncSettingToggles();
     toast(tx('graphics')+': '+label);
@@ -4386,7 +4412,8 @@
     if(active && active!=='screenMenu'){ show('screenMenu'); return true; }
     return false;
   };
-  window.addEventListener('contextmenu',e=>e.preventDefault());
+  function blockNativeCallout(e){ e.preventDefault(); }
+  ['contextmenu','selectstart','gesturestart'].forEach(ev=>document.addEventListener(ev,blockNativeCallout,{passive:false}));
   window.addEventListener('pagehide',()=>{ flushSave(); saveRunState({force:true}); stopFpsSampling(); });
   document.addEventListener('visibilitychange',()=>{
     if(document.hidden){ flushSave(); saveRunState({force:true}); stopFpsSampling(); return; }

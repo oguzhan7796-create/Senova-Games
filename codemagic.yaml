@@ -34,6 +34,12 @@ workflows:
             echo "HATA: BlockMir/www/game.js yok"
             exit 1
           fi
+          for f in mir-soft.jpg menu-mascot.png icon-512.png senova-splash-fullscreen.png; do
+            if [ ! -f "BlockMir/www/assets/$f" ]; then
+              echo "HATA: BlockMir/www/assets/$f yok"
+              exit 1
+            fi
+          done
           echo "www OK"
       - name: Set up code signing settings on Xcode project
         script: xcode-project use-profiles --project BlockMir.xcodeproj --archive-method app-store

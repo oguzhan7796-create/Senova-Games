@@ -15,6 +15,9 @@ if %ERRORLEVEL% GEQ 8 (
   echo HATA: Kopyalama basarisiz.
   exit /b 1
 )
+if not exist "%DST%\assets\mir-soft.jpg" (
+  echo UYARI: mir-soft.jpg eksik. Android assets klasorunden kopyalayin.
+)
 
 echo.
 echo OK: Web dosyalari kopyalandi -> %DST%
