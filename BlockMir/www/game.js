@@ -572,8 +572,13 @@
     const p=String(nativeDevice.product||'').toLowerCase();
     return m==='apple' || p==='ios' || /iphone|ipad|ipod/.test(ua);
   }
-  function allowFullVisuals(){
+  function effectiveGraphics(){
     const g=data.graphics||'auto';
+    if(g==='auto' && autoPerfLevel()===0) return 'max';
+    return g;
+  }
+  function allowFullVisuals(){
+    const g=effectiveGraphics();
     return g==='max' || g==='high';
   }
   function deviceMemory(){ return Number(navigator.deviceMemory || 0); }
@@ -869,7 +874,7 @@
     document.body.dataset.perf = level>=3 ? 'ultra' : level>=2 ? 'low' : level>=1 ? 'lite' : 'full';
     document.body.dataset.fxperf = fxLevel>=3 ? 'ultra' : fxLevel>=2 ? 'low' : fxLevel>=1 ? 'lite' : 'full';
     document.body.dataset.devicetier = String(segment);
-    document.body.dataset.graphics = data.graphics || 'auto';
+    document.body.dataset.graphics = effectiveGraphics();
     document.body.dataset.tablet = tabletSizeClass();
   }
   function perfLite(){ return document.body.classList.contains('perf-lite'); }
@@ -2473,7 +2478,7 @@
     const metrics=currentBoardMetrics();
     const rect=metrics.r;
     const fxLevel=fxBudgetLevel();
-    const manual=data.graphics||'auto';
+    const manual=effectiveGraphics();
     const maxVisual=manual==='max', highVisual=manual==='high';
     const lite=fxLevel>=1, low=fxLevel>=2, veryLow=fxLevel>=3, heavy=heavyAdventure() && !maxVisual;
     if(shouldSampleFps() && !veryLow && (heavy || comboNow>=3 || n>=3)) startFpsSampling(4200);
