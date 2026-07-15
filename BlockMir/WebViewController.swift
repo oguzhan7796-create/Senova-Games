@@ -17,6 +17,24 @@ final class WebViewController: UIViewController {
     override var prefersStatusBarHidden: Bool { true }
     override var prefersHomeIndicatorAutoHidden: Bool { true }
 
+    override func viewSafeAreaInsetsDidChange() {
+        super.viewSafeAreaInsetsDidChange()
+        injectSafeAreaInsets()
+    }
+
+    // WKWebView, contentInsetAdjustmentBehavior = .never iken env(safe-area-inset-*)
+    // degerlerini 0 bildirir; gercek centik degerlerini CSS degiskenlerine biz yazariz.
+    private func injectSafeAreaInsets() {
+        guard let webView = webView else { return }
+        let top = Int(view.safeAreaInsets.top.rounded())
+        let bottom = Int(view.safeAreaInsets.bottom.rounded())
+        let js = "try{var r=document.documentElement.style;" +
+            "r.setProperty('--android-top','\(top)px');" +
+            "r.setProperty('--android-bottom','\(bottom)px');" +
+            "window.dispatchEvent(new Event('resize'));}catch(e){}"
+        webView.evaluateJavaScript(js, completionHandler: nil)
+    }
+
     func resumeWebView() {
         webView?.configuration.userContentController.removeAllScriptMessageHandlers()
         webView?.configuration.userContentController.add(self, name: bridgeName)
@@ -46,6 +64,7 @@ final class WebViewController: UIViewController {
         config.userContentController.add(self, name: bridgeName)
 
         let webView = WKWebView(frame: .zero, configuration: config)
+        webView.navigationDelegate = self
         webView.translatesAutoresizingMaskIntoConstraints = false
         webView.isOpaque = false
         webView.backgroundColor = .clear
@@ -158,6 +177,12 @@ final class WebViewController: UIViewController {
     private func deliverPhotoDataURL(_ dataUrl: String) {
         let quoted = NSString(string: dataUrl)
         runJS("window.BlockMirReceiveAndroidPhoto&&window.BlockMirReceiveAndroidPhoto(\(quoted));")
+    }
+}
+
+extension WebViewController: WKNavigationDelegate {
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        injectSafeAreaInsets()
     }
 }
 

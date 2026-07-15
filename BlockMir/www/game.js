@@ -3,7 +3,7 @@
   const screens = ['screenMenu','screenClassic','screenGame','screenAdventure','screenCustomize','screenDaily','screenAchievements','screenStats','screenSettings'];
   const LS = 'blockmir_save_';
   const RUN_KEY = LS + 'activeRun';
-  const APP_VERSION = '1.1.5';
+  const APP_VERSION = '1.2';
   const DEBUG_UNLOCK_ALL = false;
   const TUTORIAL_VERSION = 11;
   const ADVENTURE_MAX_LEVEL = 100;
@@ -239,8 +239,8 @@
         sub.id='dailyBtnSub';
         daily.append(title, sub);
       }
-      title.textContent=tx('dailyMenuTitle');
-      sub.textContent=tx('dailyMenuSub');
+      title.textContent=tx('challengeMenuTitle');
+      sub.textContent=challengeMenuSubText();
     }
     const adv=$('adventureBtn');
     if(adv){
@@ -497,7 +497,7 @@
     refreshLevelUI();
     if($('navAdFreeLabel')) $('navAdFreeLabel').textContent=tx('navAdFreeBadge');
     if($('navAdFreeBadge')) $('navAdFreeBadge').setAttribute('aria-label', tx('navAdFreeBadge'));
-    [['navCustomize','navCustomize'],['navAch','navAch'],['navStats','navStats']].forEach(([id,key])=>{ const btn=$(id); if(!btn) return; const lbl=btn.querySelector('.nav-label'); if(lbl) lbl.textContent=tx(key); });
+    [['navDaily','navDaily'],['navCustomize','navCustomize'],['navAch','navAch'],['navStats','navStats']].forEach(([id,key])=>{ const btn=$(id); if(!btn) return; const lbl=btn.querySelector('.nav-label'); if(lbl) lbl.textContent=tx(key); });
     syncGameOverContinueLabel();
     if($('colorblindTitle')) $('colorblindTitle').textContent=tx('colorblindTitle');
     if($('colorblindDesc')) $('colorblindDesc').textContent=tx('colorblindDesc');
@@ -512,6 +512,7 @@
     if($('pauseGraphicsTitle')) $('pauseGraphicsTitle').textContent=tx('graphics');
     if($('settingsVersion')) $('settingsVersion').textContent=tx('version')+' '+APP_VERSION;
     if($('gameOverScoreLabel')) $('gameOverScoreLabel').textContent=tx('scoreLabel');
+    if($('navDaily')) $('navDaily').setAttribute('aria-label', tx('navDaily'));
     if($('navCustomize')) $('navCustomize').setAttribute('aria-label', tx('navCustomize'));
     if($('navAch')) $('navAch').setAttribute('aria-label', tx('navAch'));
     if($('navStats')) $('navStats').setAttribute('aria-label', tx('navStats'));
@@ -1505,6 +1506,9 @@
     if(!dailyModePlayable(modId)) return toast(tx('dailyLockedDay').toUpperCase());
     clearRunState();
     stopAdventureTimer();
+    data.dailyChallengeLast=dayKey();
+    save(true);
+    renderMenuStreak();
     mode='daily';
     dailyModId=modId;
     boardSize=8;
@@ -3360,7 +3364,16 @@
       el.classList.toggle('hidden', streak<=0);
     }
     const sub=$('dailyBtnSub');
-    if(sub) sub.textContent=tx('dailyMenuSub');
+    if(sub) sub.textContent=challengeMenuSubText();
+    const giftDot=$('navDailyDot');
+    if(giftDot) giftDot.classList.toggle('hidden', dailyGap()===0);
+    const challengeDot=$('challengeTodayDot');
+    if(challengeDot) challengeDot.classList.toggle('hidden', data.dailyChallengeLast===dayKey());
+  }
+  function challengeMenuSubText(){
+    const today=BD&&BD.todayMode&&BD.todayMode();
+    if(!today) return tx('dailyMenuSub');
+    return tx('dailyToday')+': '+(today.icon||'')+' '+dailyModeName(today.id);
   }
   function awardDailyTrophy(modId, sc){
     if(!modId||sc<=0||data.dailyTrophies?.[modId]) return;
@@ -3499,6 +3512,12 @@
     btn.textContent=tx('shareScore');
   }
   function daily(){ show('screenDaily'); }
+  function openDailyHub(tab){
+    setDailyHubTab(tab);
+    daily();
+    const tabs=document.querySelector('.daily-hub-tabs');
+    if(tabs) tabs.classList.add('hidden');
+  }
   function openDailyChest(){
     if(dailyChestOpening) return;
     if(dailyGap()===0) return toast(tx('dailyClaimed'));
@@ -3538,7 +3557,7 @@
     setDailyHubTab(dailyHubTab);
     renderDailyStreak();
     renderDailyTrophies();
-    if($('dailyHubTitle')) $('dailyHubTitle').textContent=tx('dailyHub');
+    if($('dailyHubTitle')) $('dailyHubTitle').textContent=dailyHubTab==='challenge'?tx('dailyTabChallenge'):tx('dailyHub');
     if($('dailyTabRewardBtn')) $('dailyTabRewardBtn').textContent=tx('dailyTabReward');
     if($('dailyTabChallengeBtn')) $('dailyTabChallengeBtn').textContent=tx('dailyTabChallenge');
     if($('dailyModeBoardTitle')) $('dailyModeBoardTitle').textContent=tx('dailyModeBoardTitle');
@@ -4202,7 +4221,8 @@
     $('navAdFreeBadge').onclick=showAdFreeInfo;
     $('navAdFreeBadge').onkeydown=(e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); showAdFreeInfo(); } };
   }
-  $('navAch').onclick=()=>show('screenAchievements'); $('navStats').onclick=()=>show('screenStats'); $('settingsBtn').onclick=()=>show('screenSettings'); $('dailyBtn').onclick=()=>{playTone('tap');daily()};
+  $('navAch').onclick=()=>show('screenAchievements'); $('navStats').onclick=()=>show('screenStats'); $('settingsBtn').onclick=()=>show('screenSettings'); $('dailyBtn').onclick=()=>{playTone('tap');openDailyHub('challenge')};
+  if($('navDaily')) $('navDaily').onclick=()=>{playTone('tap');openDailyHub('reward')};
   document.querySelectorAll('.backBtn').forEach(b=>b.onclick=()=>show('screenMenu'));
   $('pauseBtn').onclick=()=>{ playTone('tap'); openPause(); };
   if($('pauseResumeBtn')) $('pauseResumeBtn').onclick=()=>{ playTone('tap'); closePause(true); };
