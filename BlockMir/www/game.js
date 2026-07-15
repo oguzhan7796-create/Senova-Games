@@ -551,7 +551,7 @@
   const boardEl = $('board'), trayEl = $('pieceTray'), dragLayer = $('dragLayer');
   let photoQuotaWarned=false;
   let previewEls=[], boardCellEls=[], boardMetricsCache=null;
-  let perfAutoLevel=0, fpsFrames=0, fpsStart=0, fpsRaf=0, fpsSampleUntil=0, fpsLowStreak=0, fpsGoodSince=0, ramTightDevice=false;
+  let perfAutoLevel=0, fpsFrames=0, fpsStart=0, fpsRaf=0, fpsSampleUntil=0, fpsLowStreak=0, fpsSoftLowStreak=0, fpsGoodSince=0, fpsWarmupSkip=false, ramTightDevice=false;
   const ua=(navigator.userAgent||'').toLowerCase();
   const gpuInfo=readGpuInfo();
   function readGpuInfo(){
@@ -900,13 +900,13 @@
   function stopFpsSampling(){
     if(fpsRaf) cancelAnimationFrame(fpsRaf);
     fpsRaf=0; fpsFrames=0; fpsStart=0; fpsSampleUntil=0;
-    fpsLowStreak=0; fpsGoodSince=0;
+    fpsLowStreak=0; fpsSoftLowStreak=0; fpsGoodSince=0; fpsWarmupSkip=false;
   }
   function startFpsSampling(duration=6500){
     if(!shouldSampleFps()) return;
     fpsSampleUntil=Math.max(fpsSampleUntil||0, performance.now()+duration);
     if(fpsRaf) return;
-    fpsFrames=0; fpsStart=0;
+    fpsFrames=0; fpsStart=0; fpsWarmupSkip=true;
     fpsRaf=requestAnimationFrame(sampleFps);
   }
   function sampleFps(ts){
@@ -916,22 +916,32 @@
     fpsFrames++;
     if(ts-fpsStart>=2200){
       const fps=fpsFrames*1000/(ts-fpsStart);
-      if(fps<45){
+      if(fpsWarmupSkip){
+        fpsWarmupSkip=false;
+      }else if(fps<45){
         fpsLowStreak++;
+        fpsSoftLowStreak=0;
         fpsGoodSince=0;
         if(fpsLowStreak>=3) perfAutoLevel=Math.max(perfAutoLevel, 2);
         else if(fpsLowStreak>=2) perfAutoLevel=Math.max(perfAutoLevel, 1);
       }else{
         fpsLowStreak=0;
-        if(fps>=55){
-          if(!fpsGoodSince) fpsGoodSince=ts;
-          else if(ts-fpsGoodSince>=30000 && perfAutoLevel>0){
-            perfAutoLevel--;
-            fpsGoodSince=ts;
-          }
-        }else fpsGoodSince=0;
-        if(fps<56) perfAutoLevel=Math.max(perfAutoLevel, 1);
+        if(fps<52){
+          fpsSoftLowStreak++;
+          fpsGoodSince=0;
+          if(fpsSoftLowStreak>=2) perfAutoLevel=Math.max(perfAutoLevel, 1);
+        }else{
+          fpsSoftLowStreak=0;
+          if(fps>=55){
+            if(!fpsGoodSince) fpsGoodSince=ts;
+            else if(ts-fpsGoodSince>=8000 && perfAutoLevel>0){
+              perfAutoLevel--;
+              fpsGoodSince=ts;
+            }
+          }else fpsGoodSince=0;
+        }
       }
+      if(perfAutoLevel>0) fpsSampleUntil=Math.max(fpsSampleUntil, ts+3200);
       updatePerfMode();
       fpsStart=ts; fpsFrames=0;
     }
@@ -4276,6 +4286,7 @@
     try{ localStorage.setItem(LS+'graphicsUserSet','1'); }catch(_){}
     perfAutoLevel=0;
     fpsLowStreak=0;
+    fpsSoftLowStreak=0;
     fpsGoodSince=0;
     updatePerfMode();
     applyTheme();
