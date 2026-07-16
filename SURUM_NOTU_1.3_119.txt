@@ -1,0 +1,20 @@
+BlockMir iOS 1.3 (119) — App Store Sürüm Notu
+================================================
+
+YENİLİKLER
+----------
+• Macera ve Meydan Okuma modlarında iPhone çentik/güvenli alan düzeltmesi
+• Otomatik grafik modu güçlü iPhone'larda daha akıllı çalışıyor
+• Maksimum grafik seçeneğinde daha zengin ve premium görsel efektler
+• Ana menüde Meydan Okuma ve Günlük ödül ayrımı (1.2'den)
+
+İYİLEŞTİRMELER
+--------------
+• Tahta ve oyun arayüzü farklı ekran boyutlarında daha iyi hizalanıyor
+• 2 GB ve üzeri iPhone'larda performans profili iyileştirildi
+• Combo ve satır temizleme efektleri Maksimum modda güçlendirildi
+
+App Store kısa açıklama (TR):
+"iPhone çentik düzeltmesi, akıllı otomatik grafik ve premium Maksimum efektler."
+
+Build: 119 | Version: 1.3 | Tarih: 16 Temmuz 2026

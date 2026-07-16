@@ -3,7 +3,7 @@
   const screens = ['screenMenu','screenClassic','screenGame','screenAdventure','screenCustomize','screenDaily','screenAchievements','screenStats','screenSettings'];
   const LS = 'blockmir_save_';
   const RUN_KEY = LS + 'activeRun';
-  const APP_VERSION = '1.2';
+  const APP_VERSION = '1.3';
   const DEBUG_UNLOCK_ALL = false;
   const TUTORIAL_VERSION = 11;
   const ADVENTURE_MAX_LEVEL = 100;
@@ -573,9 +573,16 @@
     const p=String(nativeDevice.product||'').toLowerCase();
     return m==='apple' || p==='ios' || /iphone|ipad|ipod/.test(ua);
   }
+  function appleCapablePhone(){
+    const ram=nativeRamMb();
+    return isApple() && ram>=3584;
+  }
   function effectiveGraphics(){
     const g=data.graphics||'auto';
-    if(g==='auto' && autoPerfLevel()===0) return 'max';
+    if(g!=='auto') return g;
+    if(perfAutoLevel>=2) return 'auto';
+    if(appleCapablePhone() && perfAutoLevel<=1) return 'max';
+    if(autoPerfLevel()===0 && perfAutoLevel<=1) return 'max';
     return g;
   }
   function allowFullVisuals(){
@@ -591,7 +598,7 @@
     const ram=nativeRamMb();
     return !!nativeDevice.lowRam ||
       /tecno|pova|infinix|itel|max\s*19\s*pro\s*s|max\s*19|19\s*pro\s*s|\bs\s*19\b|\bs19\b|mali[- ]?400|mali[- ]?t720|mali[- ]?t820|ge8100|ge8300|ge8320|ge8322|adreno\s*30[45]|adreno\s*40[45]|adreno\s*50[456]|sc7731|sc983|sc9863|mt8321|mt8167|mt8765|msm8909|apq8009|sdm450|spreadtrum/.test(text) ||
-      (ram>0 && ram<3072);
+      (ram>0 && ram<3072 && !isApple());
   }
   function tabletSizeClass(){
     const sw=Number(nativeDevice.smallestWidthDp||0);
@@ -636,29 +643,29 @@
     const ram=nativeRamMb();
     let level=0;
     if(knownCriticalDevice()) level=3;
-    if(ram && ram<3072) level=3;
-    else if(ram && ram<4096) level=2;
+    if(ram && ram<3072 && !isApple()) level=3;
+    else if(ram && ram<4096 && !(isApple() && ram>=3584)) level=2;
     else if(ram && ram<6144) level=1;
     if(/mali[- ]?g31|mali[- ]?g52|mali[- ]?g57|mali[- ]?g68|adreno\s*61[023568]|adreno\s*619|powervr|ge8/.test(text)) level=Math.max(level,1);
     if(/mali[- ]?400|mali[- ]?t720|mali[- ]?t820|ge8100|ge8300|ge8320|ge8322|adreno\s*30[45]|adreno\s*40[45]|adreno\s*50[456]|sc7731|sc983|sc9863|mt8321|mt8167|mt8765|msm8909|apq8009|sdm450|spreadtrum/.test(text)) level=Math.max(level,3);
     if(/tecno|pova|sm-a26|galaxy a26|a26 5g|max\s*19/.test(text)) level=Math.max(level,2);
     if(nativeDevice.lowRam) level=3;
-    if(screenPixels()>2300000 && (!ram || ram<8192)) level=Math.max(level,1);
+    if(screenPixels()>2300000 && (!ram || ram<8192) && !appleCapablePhone()) level=Math.max(level,1);
     const tablet=tabletSizeClass();
     if(tablet==='tablet-7' && (screenPixels()>1800000 || !ram || ram<6144)) level=Math.max(level,2);
     else if(tablet==='tablet-10' && ram>0 && ram<4096) level=Math.max(level,2);
     else if(tablet==='tablet-10' && ram>=6144) level=Math.min(level,1);
     if(Number(nativeDevice.sdk||0) && Number(nativeDevice.sdk)<29 && !isApple()) level=Math.max(level,2);
     if(isApple()){
-      if(ram>=6144) level=0;
-      else if(ram>=3584) level=Math.min(level,1);
+      if(ram>=3584) level=0;
+      else if(ram>=2048) level=Math.min(level,1);
       else level=Math.min(level,2);
     }
     return Math.max(0, Math.min(3, level));
   }
   function syncRamTightProfile(){
     const ram=nativeRamMb();
-    ramTightDevice=ram>0 && ram<3072;
+    ramTightDevice=ram>0 && ram<3072 && !isApple();
     if(ramTightDevice) perfAutoLevel=Math.max(perfAutoLevel, 2);
   }
   syncRamTightProfile();
@@ -702,6 +709,13 @@
     if(mode==='adventure'){
       const steps=goalSteps(levelGoal(currentAdventureLevel||1)).length;
       base += steps>=2 ? 76 : 58;
+    }
+    if(mode==='daily' && !v.landscape){
+      base += 14;
+      const timerEl=$('adventureTimerStrip');
+      if(dailyModActive('blitz') && timerEl && !timerEl.classList.contains('hidden')) base += 58;
+      const shrinkEl=$('dailyShrinkStrip');
+      if(shrinkEl && !shrinkEl.classList.contains('hidden')) base += 102;
     }
     if(v.landscape){
       const tabletPad=tablet==='tablet-10'?12:tablet==='tablet-7'?8:0;
@@ -805,10 +819,14 @@
     const ram=nativeRamMb();
     const tablet=tabletSizeClass();
     const segment=csvDeviceLevel();
-    if(segment>=3 || nativeDevice.lowRam || (ram>0 && ram<3072)) return 3;
-    if(segment>=2 || (ram>0 && ram<4096)) return 2;
+    const appleStrong=appleCapablePhone();
+    const appleOk=isApple() && ram>=2048;
+    if(segment>=3 || nativeDevice.lowRam || (ram>0 && ram<3072 && !isApple())) return 3;
+    if(segment>=2 || (ram>0 && ram<4096 && !appleStrong && !appleOk)) return 2;
     let level=0;
-    if(segment>=1 || (isAndroid() && isCoarsePointer() && (mem && mem<=4))) level=1;
+    if(segment>=1 || (isAndroid() && isCoarsePointer() && (mem && mem<=4))){
+      if(!appleStrong) level=1;
+    }
     if(tablet==='tablet-7' || knownJankDevice()) level=Math.max(level,2);
     if(mem && mem>=8 && ram>=6144 && segment===0 && !knownJankDevice()) level=0;
     level=Math.max(level, perfAutoLevel, adventurePressure());
@@ -826,7 +844,7 @@
     return autoLevel;
   }
   function fxBudgetLevel(){
-    const manual=data.graphics||'max';
+    const manual=effectiveGraphics();
     if(manual==='max'){
       const segment=csvDeviceLevel();
       return segment>=3 ? 2 : segment>=2 ? 1 : 0;
@@ -882,7 +900,7 @@
   function perfLow(){ return document.body.classList.contains('perf-low'); }
   function perfUltra(){ return document.body.classList.contains('perf-ultra'); }
   function leanPreview(){
-    if(data.graphics==='max' || data.graphics==='high') return false;
+    if(allowFullVisuals()) return false;
     if(tabletSizeClass()==='tablet-10' && csvDeviceLevel()<2) return false;
     return perfLow() || fxBudgetLevel()>=2 || (tabletSizeClass()==='tablet-7' && mode==='adventure');
   }
@@ -1369,7 +1387,7 @@
     $('dailyTabRewardBtn')?.classList.toggle('active',tab==='reward');
     $('dailyTabChallengeBtn')?.classList.toggle('active',tab==='challenge');
   }
-  function hideDailyShrinkStrip(){ const el=$('dailyShrinkStrip'); if(el) el.classList.add('hidden'); }
+  function hideDailyShrinkStrip(){ const el=$('dailyShrinkStrip'); if(el) el.classList.add('hidden'); syncViewportLayout(); }
   function renderDailyShrinkGauge(){
     const el=$('dailyShrinkStrip');
     if(mode!=='daily'||!dailyModActive('shrink')) return hideDailyShrinkStrip();
@@ -1394,6 +1412,7 @@
       }
     }
     if(el) el.classList.toggle('daily-shrink-danger', cur>=max-2);
+    syncViewportLayout();
   }
   function applyDailyShrinkStep(){
     if(!dailyCanShrinkMore()){
@@ -1490,6 +1509,7 @@
     if($('limit3')) $('limit3').textContent='';
     if($('limit2')) $('limit2').textContent='';
     if($('limit1')) $('limit1').textContent='';
+    syncViewportLayout();
   }
   function startDailyBlitzTimer(){
     stopDailyBlitzTimer(false);
@@ -2499,9 +2519,9 @@
     const effect=activeEffectId()||'star'; const cls='fx-'+effect; const meta=effectMeta(effect);
     const pool=meta.chars||['✦'];
     const baseCount=34+n*18+comboNow*14;
-    const cap=maxVisual?36:highVisual?28:veryLow?0:low?0:lite?12:heavy?16:38;
-    const mult=maxVisual ? .34 : highVisual ? .26 : veryLow ? 0 : low ? .06 : lite ? .16 : heavy ? .2 : .34;
-    const minCount=maxVisual?12:highVisual?8:veryLow?0:low?0:lite?4:7;
+    const cap=maxVisual?52:highVisual?28:veryLow?0:low?0:lite?12:heavy?16:38;
+    const mult=maxVisual ? .5 : highVisual ? .26 : veryLow ? 0 : low ? .06 : lite ? .16 : heavy ? .2 : .34;
+    const minCount=maxVisual?16:highVisual?8:veryLow?0:low?0:lite?4:7;
     const count=Math.min(cap, Math.max(minCount, Math.round(baseCount * mult * fxParticleScale())));
     const lineCenters=[];
     const centerFor=(x,y)=>({
@@ -2519,26 +2539,31 @@
       return;
     }
     if((meta.wave || comboNow>=2) && (maxVisual || highVisual || (!low && !heavy && (!lite || comboNow>=4)))){
-      const ring=document.createElement('div'); ring.className='fx-wave '+cls;
+      const ring=document.createElement('div'); ring.className='fx-wave '+cls+(maxVisual?' fx-wave-premium':'');
       const c=lineCenters[0]; ring.style.left=c.x+'px'; ring.style.top=c.y+'px'; ring.style.setProperty('--fxColor',meta.color||'#fff');
-      document.body.appendChild(ring); setTimeout(()=>ring.remove(),lite?760:1050);
+      document.body.appendChild(ring); setTimeout(()=>ring.remove(),maxVisual?1150:lite?760:1050);
+      if(maxVisual && comboNow>=3){
+        const ring2=document.createElement('div'); ring2.className='fx-wave fx-wave-premium '+cls;
+        ring2.style.left=c.x+'px'; ring2.style.top=c.y+'px'; ring2.style.setProperty('--fxColor',meta.color||'#fff');
+        document.body.appendChild(ring2); setTimeout(()=>ring2.remove(),1250);
+      }
     }
-    if((meta.screen || comboNow>=3 || n>=3) && (maxVisual || highVisual || (!low && !heavy && (!lite || comboNow>=5 || n>=4)))) createScreenFlash(cls, comboNow, n, meta.color||'#fff');
+    if((meta.screen || comboNow>=3 || n>=3) && (maxVisual || highVisual || (!low && !heavy && (!lite || comboNow>=5 || n>=4)))) createScreenFlash(cls, comboNow, n, meta.color||'#fff', maxVisual);
     const frag=document.createDocumentFragment();
     const particles=[];
     for(let i=0;i<count;i++){
       const center=lineCenters[i%lineCenters.length];
       const p=document.createElement('div'); p.className='fx-particle '+cls+' fx-size-'+(i%4); p.textContent=pool[i%pool.length];
       const x=center.x + (Math.random()-.5)*Math.min(270,rect.width*.78); const y=center.y + (Math.random()-.5)*Math.min(240,rect.height*.58);
-      const power=((meta.screen||comboNow>=3?230:170) + n*12) * (maxVisual ? .72 : highVisual ? .64 : veryLow ? .32 : low ? .42 : lite ? .58 : heavy ? .62 : 1);
+      const power=((meta.screen||comboNow>=3?230:170) + n*12) * (maxVisual ? 1.05 : highVisual ? .64 : veryLow ? .32 : low ? .42 : lite ? .58 : heavy ? .62 : 1);
       const tx=(Math.random()-.5)*power, ty=(Math.random()-.72)*(power+90);
       p.style.left=x+'px'; p.style.top=y+'px'; p.style.setProperty('--tx',tx+'px'); p.style.setProperty('--ty',ty+'px'); p.style.setProperty('--fxColor',meta.color||'#fff');
       particles.push(p);
       frag.appendChild(p);
     }
     document.body.appendChild(frag);
-    setTimeout(()=>particles.forEach(p=>p.remove()),veryLow?380:low?460:lite?620:820);
-    if((comboNow>=2 || n>=2) && !lite && !heavy){ boardEl.classList.add('board-pulse'); setTimeout(()=>boardEl.classList.remove('board-pulse'),360); }
+    setTimeout(()=>particles.forEach(p=>p.remove()),veryLow?380:low?460:lite?620:maxVisual?980:820);
+    if((comboNow>=2 || n>=2) && !lite && !heavy){ boardEl.classList.add('board-pulse'+(maxVisual?' board-pulse-premium':'')); setTimeout(()=>boardEl.classList.remove('board-pulse','board-pulse-premium'),maxVisual?420:360); }
     if((comboNow>=3 || n>=3) && !lite && !heavy){ document.body.classList.add('screen-shake-soft'); setTimeout(()=>document.body.classList.remove('screen-shake-soft'),220); }
   }
   function createLineBeam(dir, pos, rect, cls){
@@ -2575,21 +2600,22 @@
     document.body.appendChild(frag);
     setTimeout(()=>els.forEach(e=>e.remove()),360);
   }
-  function createScreenFlash(cls, comboNow=1, n=1, color='#fff'){
+  function createScreenFlash(cls, comboNow=1, n=1, color='#fff', maxVisual=false){
     const lite=perfLite();
-    const f=document.createElement('div'); f.className='fx-screen-flash '+cls; f.style.setProperty('--fxColor',color);
-    document.body.appendChild(f); setTimeout(()=>f.remove(),lite?520:850);
-    if(!lite && (comboNow>=4 || n>=4 || cls.includes('legend'))){
-      const edge=document.createElement('div'); edge.className='fx-edge '+cls; edge.style.setProperty('--fxColor',color);
-      document.body.appendChild(edge); setTimeout(()=>edge.remove(),1100);
+    const f=document.createElement('div'); f.className='fx-screen-flash '+cls+(maxVisual?' fx-screen-flash-premium':''); f.style.setProperty('--fxColor',color);
+    document.body.appendChild(f); setTimeout(()=>f.remove(),lite?520:maxVisual?980:850);
+    if(!lite && (maxVisual && (comboNow>=2 || n>=2) || comboNow>=4 || n>=4 || cls.includes('legend'))){
+      const edge=document.createElement('div'); edge.className='fx-edge '+cls+(maxVisual?' fx-edge-premium':''); edge.style.setProperty('--fxColor',color);
+      document.body.appendChild(edge); setTimeout(()=>edge.remove(),maxVisual?1300:1100);
     }
   }
   function comboBurst(word,n,comboNow){
     const fxLevel=fxBudgetLevel();
+    const maxVisual=effectiveGraphics()==='max';
     const old=document.querySelector('.combo-burst'); if(old) old.remove();
-    const b=document.createElement('div'); b.className='combo-burst level-'+Math.min(5,Math.max(comboNow,n))+(fxLevel>=2?' combo-burst-lite':'');
+    const b=document.createElement('div'); b.className='combo-burst level-'+Math.min(5,Math.max(comboNow,n))+(maxVisual?' combo-burst-premium':'')+(fxLevel>=2?' combo-burst-lite':'');
     b.innerHTML=`<strong>${word}</strong><small>${comboNow>1?tx('comboBurstLine',{n:comboNow}):tx('clearCountLine',{n})}</small>`;
-    document.body.appendChild(b); setTimeout(()=>b.classList.add('show'),10); setTimeout(()=>b.remove(),fxLevel>=2?920:fxLevel>=1?980:1180);
+    document.body.appendChild(b); setTimeout(()=>b.classList.add('show'),10); setTimeout(()=>b.remove(),fxLevel>=2?920:maxVisual?1320:fxLevel>=1?980:1180);
   }
   function hasMove(){return pieces.some(p=>!p.used && findMove(p));}
   function moveScore(p,x,y){
@@ -2809,7 +2835,7 @@
     maybeRequestReview();
   }
 
-  function hideAdventureTimer(){ const el=$('adventureTimerStrip'); if(el) el.classList.add('hidden'); }
+  function hideAdventureTimer(){ const el=$('adventureTimerStrip'); if(el) el.classList.add('hidden'); if(mode==='daily') syncViewportLayout(); }
   function startAdventureTimer(){
     stopAdventureTimer(false);
     const el=$('adventureTimerStrip'); if(el) el.classList.remove('hidden');
