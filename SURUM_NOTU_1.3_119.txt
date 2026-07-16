@@ -1,20 +1,70 @@
-BlockMir iOS 1.3 (119) — App Store Sürüm Notu
-================================================
+================================================================================
+  BlockMir — iOS Sürüm Notu
+  Sürüm 1.3  |  Build 119  |  16 Temmuz 2026
+  Platform: iPhone / iPad (App Store)
+================================================================================
 
-YENİLİKLER
-----------
-• Macera ve Meydan Okuma modlarında iPhone çentik/güvenli alan düzeltmesi
-• Otomatik grafik modu güçlü iPhone'larda daha akıllı çalışıyor
-• Maksimum grafik seçeneğinde daha zengin ve premium görsel efektler
-• Ana menüde Meydan Okuma ve Günlük ödül ayrımı (1.2'den)
 
-İYİLEŞTİRMELER
---------------
-• Tahta ve oyun arayüzü farklı ekran boyutlarında daha iyi hizalanıyor
-• 2 GB ve üzeri iPhone'larda performans profili iyileştirildi
-• Combo ve satır temizleme efektleri Maksimum modda güçlendirildi
+APP STORE — "Yenilikler" (Türkçe)
+---------------------------------
+Bu güncelleme oyun deneyimini daha akıcı ve görsel olarak daha tutarlı hale getirir.
 
-App Store kısa açıklama (TR):
-"iPhone çentik düzeltmesi, akıllı otomatik grafik ve premium Maksimum efektler."
+• iPhone çentik ve güvenli alan desteği Macera ile Meydan Okuma modlarında iyileştirildi.
+• Otomatik grafik ayarı, cihaz performansına göre daha doğru kalite seviyesi sunar.
+• Maksimum grafik modunda combo ve satır temizleme efektleri yenilendi.
+• Ana menüde Günlük Meydan Okuma ve Günlük Ödül bölümleri net biçimde ayrıldı.
 
-Build: 119 | Version: 1.3 | Tarih: 16 Temmuz 2026
+
+APP STORE — "What's New" (English)
+----------------------------------
+This update improves visual consistency and device compatibility across game modes.
+
+• Improved safe-area support for Adventure and Daily Challenge on iPhone.
+• Smarter Auto graphics quality based on device performance.
+• Enhanced visual effects in Maximum graphics mode.
+• Clearer separation between Daily Challenge and Daily Rewards on the main menu.
+
+
+APP STORE — Kısa Özet (Promotional Text / 170 karakter sınırına uygun)
+-----------------------------------------------------------------------
+Daha iyi iPhone uyumu, akıllı grafik ayarı ve geliştirilmiş görsel efektler. Macera ve Meydan Okuma modlarında daha akıcı bir deneyim.
+
+
+İÇ SÜRÜM KAYDI (Teknik)
+-----------------------
+Sürüm Kodu
+  MARKETING_VERSION : 1.3
+  CURRENT_PROJECT_VERSION : 119
+  CFBundleShortVersionString : 1.3
+  CFBundleVersion : 119
+
+Kullanıcı Arayüzü ve Düzen
+  - Macera, Meydan Okuma ve Gece modlarında safe-area tabanlı üst/alt hizalama
+  - Oyun tahtası boyutu dinamik chrome yüksekliği (var(--game-chrome)) ile hesaplanır
+  - Tablet ve yatay modda sabit piksel kaynaklı tahta boyutu sorunları giderildi
+
+Grafik ve Performans
+  - Apple cihazlarda fiziksel bellek raporlamasına uygun RAM eşikleri (4 GB: ≥3584 MB)
+  - 2 GB ve üzeri iPhone modellerinde gereksiz düşük performans profili kaldırıldı
+  - Otomatik mod: güçlü cihazlarda, FPS stabil olduğunda Maksimum kaliteye yakın render
+  - Maksimum mod: parçacık yoğunluğu, combo dalga efektleri ve önizleme görselleri güncellendi
+
+Ana Menü (1.2 devamı)
+  - Meydan Okuma ve Günlük Ödül navigasyonu ayrıştırıldı
+
+Dağıtım
+  - Git commit: a61181a
+  - Repository: oguzhan7796-create/Senova-Games (main)
+  - CI/CD: Codemagic — blockmir-ios-release workflow
+
+
+KALİTE KONTROL LİSTESİ
+----------------------
+[ ] iPhone 13 — Otomatik grafik: stabil FPS altında yüksek kalite
+[ ] iPhone 13 — Maksimum grafik: combo x3+ efektleri
+[ ] Macera — üst arayüz çentik altında kalmıyor
+[ ] Meydan Okuma — Blitz ve Shrink günlerinde tahta ölçüsü doğru
+[ ] Klasik mod — regresyon yok
+[ ] Ayarlar ekranı — sürüm 1.3 görünüyor
+
+================================================================================
