@@ -877,6 +877,14 @@
     if(perfLow() || fxBudgetLevel()>=2) return 0.5;
     return 1;
   }
+  function isNativeShell(){
+    return !!(window.BlockMirAndroid || (window.webkit && window.webkit.messageHandlers));
+  }
+  function maxFxLoad(){
+    if(effectiveGraphics()!=='max') return 0;
+    if(!isNativeShell()) return 1;
+    return Math.max(0, Math.min(2, fxBudgetLevel()));
+  }
   function updatePerfMode(){
     syncRamTightProfile();
     const level=perfLevel();
@@ -900,12 +908,15 @@
     document.body.dataset.devicetier = String(segment);
     document.body.dataset.graphics = effectiveGraphics();
     document.body.dataset.tablet = tabletSizeClass();
+    const maxLoad=maxFxLoad();
+    document.body.classList.toggle('max-fx-balanced', maxLoad===1);
+    document.body.classList.toggle('max-fx-lean', maxLoad>=2);
   }
   function perfLite(){ return document.body.classList.contains('perf-lite'); }
   function perfLow(){ return document.body.classList.contains('perf-low'); }
   function perfUltra(){ return document.body.classList.contains('perf-ultra'); }
   function leanPreview(){
-    if(allowFullVisuals()) return false;
+    if(data.graphics==='max' || data.graphics==='high') return false;
     if(tabletSizeClass()==='tablet-10' && csvDeviceLevel()<2) return false;
     return perfLow() || fxBudgetLevel()>=2 || (tabletSizeClass()==='tablet-7' && mode==='adventure');
   }
@@ -2407,8 +2418,9 @@
   async function animateClearWave(rows, cols){
     const rowSet=new Set(rows), colSet=new Set(cols);
     const fxLevel=fxBudgetLevel();
-    if(fxLevel>=2){ await wait(90); return; }
-    const stagger=fxLevel>=3?10:fxLevel>=2?14:fxLevel>=1?20:26;
+    const maxClear=effectiveGraphics()==='max' && fxLevel<2;
+    if(fxLevel>=2 && !maxClear){ await wait(90); return; }
+    const stagger=maxClear?8:fxLevel>=3?10:fxLevel>=2?14:fxLevel>=1?20:26;
     let maxDelay=0;
     boardCellEls.forEach(el=>{
       const x=+el.dataset.x, y=+el.dataset.y;
@@ -2417,13 +2429,13 @@
       if(rowSet.has(y)) delay=Math.max(delay, x*stagger);
       if(colSet.has(x)) delay=Math.max(delay, y*stagger);
       maxDelay=Math.max(maxDelay, delay);
-      el.classList.add('clear','clear-wave');
+      el.classList.add('clear','clear-wave', maxClear?'clear-wave-max':'');
       el.style.setProperty('--clear-delay', delay+'ms');
     });
-    const tail=fxLevel>=3?110:fxLevel>=2?170:fxLevel>=1?240:300;
+    const tail=maxClear?90:fxLevel>=3?110:fxLevel>=2?170:fxLevel>=1?240:300;
     await wait(maxDelay+tail);
     boardCellEls.forEach(el=>{
-      el.classList.remove('clear','clear-wave');
+      el.classList.remove('clear','clear-wave','clear-wave-max');
       el.style.removeProperty('--clear-delay');
     });
   }
@@ -2512,6 +2524,37 @@
     };
     return map[effect]||map.star;
   }
+  function spawnMaxPremiumLayers(cx, cy, cls, color, comboNow, n, load=0){
+    const ultra=comboNow>=3 || n>=3;
+    const mega=comboNow>=5 || n>=4;
+    if(load>=2 && !ultra) return;
+    const halo=document.createElement('div');
+    halo.className='fx-burst-halo '+cls+(mega?' fx-burst-halo-mega':ultra?' fx-burst-halo-ultra':'');
+    halo.style.left=cx+'px'; halo.style.top=cy+'px'; halo.style.setProperty('--fxColor',color||'#ffd84e');
+    document.body.appendChild(halo); setTimeout(()=>halo.remove(),mega?1240:ultra?980:820);
+    const sparkN=load>=2?(mega?6:ultra?4:3):load>=1?(mega?12:ultra?8:5):(mega?20:ultra?14:9);
+    const frag=document.createDocumentFragment();
+    const sparks=[];
+    for(let i=0;i<sparkN;i++){
+      const s=document.createElement('div');
+      s.className='fx-gold-spark'+(i%4===0?' fx-gold-spark-lg':'');
+      const ang=(Math.PI*2*i)/sparkN+Math.random()*.55;
+      const dist=48+Math.random()*(mega?200:ultra?150:110);
+      s.style.left=cx+'px'; s.style.top=cy+'px';
+      s.style.setProperty('--sx',(Math.cos(ang)*dist)+'px');
+      s.style.setProperty('--sy',(Math.sin(ang)*dist)+'px');
+      s.style.setProperty('--fxColor',color||'#ffd84e');
+      sparks.push(s); frag.appendChild(s);
+    }
+    document.body.appendChild(frag);
+    setTimeout(()=>sparks.forEach(s=>s.remove()),mega?1040:ultra?860:740);
+    if(mega && load===0){
+      const ring3=document.createElement('div');
+      ring3.className='fx-wave fx-wave-tertiary fx-wave-max '+cls;
+      ring3.style.left=cx+'px'; ring3.style.top=cy+'px'; ring3.style.setProperty('--fxColor',color||'#fff');
+      document.body.appendChild(ring3); setTimeout(()=>ring3.remove(),1450);
+    }
+  }
   function spawnFx(rows=[],cols=[],n=1,comboNow=1){
     updatePerfMode();
     const metrics=currentBoardMetrics();
@@ -2519,15 +2562,18 @@
     const fxLevel=fxBudgetLevel();
     const manual=effectiveGraphics();
     const maxVisual=manual==='max', highVisual=manual==='high';
+    const maxLoad=maxVisual?maxFxLoad():0;
     const lite=fxLevel>=1, low=fxLevel>=2, veryLow=fxLevel>=3, heavy=heavyAdventure() && !maxVisual;
     if(shouldSampleFps() && !veryLow && (heavy || comboNow>=3 || n>=3)) startFpsSampling(4200);
     const effect=activeEffectId()||'star'; const cls='fx-'+effect; const meta=effectMeta(effect);
     const pool=meta.chars||['✦'];
     const baseCount=34+n*18+comboNow*14;
-    const cap=maxVisual?52:highVisual?28:veryLow?0:low?0:lite?12:heavy?16:38;
-    const mult=maxVisual ? .5 : highVisual ? .26 : veryLow ? 0 : low ? .06 : lite ? .16 : heavy ? .2 : .34;
-    const minCount=maxVisual?16:highVisual?8:veryLow?0:low?0:lite?4:7;
-    const count=Math.min(cap, Math.max(minCount, Math.round(baseCount * mult * fxParticleScale())));
+    const maxMega=maxVisual&&(comboNow>=5||n>=4);
+    const capFull=maxMega?58:52;
+    const cap=maxVisual?(maxLoad>=2?(maxMega?34:30):maxLoad>=1?(maxMega?46:40):capFull):highVisual?28:veryLow?0:low?0:lite?12:heavy?16:38;
+    const mult=maxVisual?(maxLoad>=2?.28:maxLoad>=1?.38:.5):highVisual?.26:veryLow?0:low?.06:lite?.16:heavy?.2:.34;
+    const minCount=maxVisual?(maxLoad>=2?8:maxLoad>=1?10:12):highVisual?8:veryLow?0:low?0:lite?4:7;
+    const count=Math.min(cap, Math.max(minCount, Math.round(baseCount * mult * (maxVisual?(maxLoad>=2?.55:maxLoad>=1?.75:1):fxParticleScale()))));
     const lineCenters=[];
     const centerFor=(x,y)=>({
       x:rect.left+metrics.pad+x*metrics.step+metrics.cell/2,
@@ -2544,35 +2590,49 @@
       return;
     }
     if((meta.wave || comboNow>=2) && (maxVisual || highVisual || (!low && !heavy && (!lite || comboNow>=4)))){
-      const ring=document.createElement('div'); ring.className='fx-wave '+cls+(maxVisual?' fx-wave-premium':'');
+      const ring=document.createElement('div'); ring.className='fx-wave '+cls+(maxVisual?' fx-wave-max':'');
       const c=lineCenters[0]; ring.style.left=c.x+'px'; ring.style.top=c.y+'px'; ring.style.setProperty('--fxColor',meta.color||'#fff');
-      document.body.appendChild(ring); setTimeout(()=>ring.remove(),maxVisual?1150:lite?760:1050);
-      if(maxVisual && comboNow>=3){
-        const ring2=document.createElement('div'); ring2.className='fx-wave fx-wave-premium '+cls;
+      document.body.appendChild(ring); setTimeout(()=>ring.remove(),maxVisual?1100:lite?760:1050);
+      if(maxVisual && (comboNow>=2 || n>=2) && maxLoad<2){
+        const ring2=document.createElement('div'); ring2.className='fx-wave fx-wave-secondary fx-wave-max '+cls;
         ring2.style.left=c.x+'px'; ring2.style.top=c.y+'px'; ring2.style.setProperty('--fxColor',meta.color||'#fff');
-        document.body.appendChild(ring2); setTimeout(()=>ring2.remove(),1250);
+        document.body.appendChild(ring2); setTimeout(()=>ring2.remove(),1280);
       }
     }
-    if((meta.screen || comboNow>=3 || n>=3) && (maxVisual || highVisual || (!low && !heavy && (!lite || comboNow>=5 || n>=4)))) createScreenFlash(cls, comboNow, n, meta.color||'#fff', maxVisual);
+    const flashAt=maxVisual ? (comboNow>=2 || n>=2) : (meta.screen || comboNow>=3 || n>=3);
+    if(flashAt && (maxVisual || highVisual || (!low && !heavy && (!lite || comboNow>=5 || n>=4)))){
+      createScreenFlash(cls, comboNow, n, meta.color||'#fff');
+      if(maxVisual && lineCenters[0]){
+        const c=lineCenters[0];
+        const core=document.createElement('div'); core.className='fx-burst-core '+cls+(comboNow>=4||n>=3?' fx-burst-core-intense':'');
+        core.style.left=c.x+'px'; core.style.top=c.y+'px'; core.style.setProperty('--fxColor',meta.color||'#fff');
+        document.body.appendChild(core); setTimeout(()=>core.remove(),comboNow>=3||n>=3?1040:820);
+        spawnMaxPremiumLayers(c.x,c.y,cls,meta.color||'#fff',comboNow,n,maxLoad);
+      }
+    }
     const frag=document.createDocumentFragment();
     const particles=[];
     for(let i=0;i<count;i++){
       const center=lineCenters[i%lineCenters.length];
-      const p=document.createElement('div'); p.className='fx-particle '+cls+' fx-size-'+(i%4); p.textContent=pool[i%pool.length];
+      const p=document.createElement('div'); p.className='fx-particle '+cls+' fx-size-'+(i%4)+(maxVisual?' fx-particle-max':''); p.textContent=pool[i%pool.length];
       const x=center.x + (Math.random()-.5)*Math.min(270,rect.width*.78); const y=center.y + (Math.random()-.5)*Math.min(240,rect.height*.58);
-      const power=((meta.screen||comboNow>=3?230:170) + n*12) * (maxVisual ? 1.05 : highVisual ? .64 : veryLow ? .32 : low ? .42 : lite ? .58 : heavy ? .62 : 1);
+      const power=((meta.screen||comboNow>=3?230:170) + n*12) * (maxVisual ? 1 : highVisual ? .64 : veryLow ? .32 : low ? .42 : lite ? .58 : heavy ? .62 : 1);
       const tx=(Math.random()-.5)*power, ty=(Math.random()-.72)*(power+90);
       p.style.left=x+'px'; p.style.top=y+'px'; p.style.setProperty('--tx',tx+'px'); p.style.setProperty('--ty',ty+'px'); p.style.setProperty('--fxColor',meta.color||'#fff');
       particles.push(p);
       frag.appendChild(p);
     }
     document.body.appendChild(frag);
-    setTimeout(()=>particles.forEach(p=>p.remove()),veryLow?380:low?460:lite?620:maxVisual?980:820);
-    if((comboNow>=2 || n>=2) && !lite && !heavy){ boardEl.classList.add('board-pulse'+(maxVisual?' board-pulse-premium':'')); setTimeout(()=>boardEl.classList.remove('board-pulse','board-pulse-premium'),maxVisual?420:360); }
-    if((comboNow>=3 || n>=3) && !lite && !heavy){ document.body.classList.add('screen-shake-soft'); setTimeout(()=>document.body.classList.remove('screen-shake-soft'),220); }
+    setTimeout(()=>particles.forEach(p=>p.remove()),maxVisual?(maxMega?1280:1180):veryLow?380:low?460:lite?620:820);
+    if((comboNow>=2 || n>=2) && !lite && !heavy){ boardEl.classList.add(maxVisual?'board-pulse-max':'board-pulse'); setTimeout(()=>boardEl.classList.remove(maxVisual?'board-pulse-max':'board-pulse'),maxVisual?460:360); }
+    if((comboNow>=3 || n>=3) && !lite && !heavy){
+      const shakeCls=maxVisual&&(comboNow>=5||n>=4)&&maxLoad===0?'screen-shake-max':'screen-shake-soft';
+      document.body.classList.add(shakeCls); setTimeout(()=>document.body.classList.remove(shakeCls),maxVisual?300:220);
+    }
   }
   function createLineBeam(dir, pos, rect, cls){
-    const b=document.createElement('div'); b.className='fx-line-beam '+dir+' '+cls;
+    const maxVisual=effectiveGraphics()==='max';
+    const b=document.createElement('div'); b.className='fx-line-beam '+dir+' '+cls+(maxVisual?' fx-line-beam-max':'');
     if(dir==='row'){ b.style.left=rect.left+'px'; b.style.top=(pos-8)+'px'; b.style.width=rect.width+'px'; }
     else { b.style.left=(pos-8)+'px'; b.style.top=rect.top+'px'; b.style.height=rect.height+'px'; }
     document.body.appendChild(b); setTimeout(()=>b.remove(),perfLite()?520:680);
@@ -2605,23 +2665,44 @@
     document.body.appendChild(frag);
     setTimeout(()=>els.forEach(e=>e.remove()),360);
   }
-  function createScreenFlash(cls, comboNow=1, n=1, color='#fff', maxVisual=false){
+  function createScreenFlash(cls, comboNow=1, n=1, color='#fff'){
     const lite=perfLite();
-    const f=document.createElement('div'); f.className='fx-screen-flash '+cls+(maxVisual?' fx-screen-flash-premium':''); f.style.setProperty('--fxColor',color);
-    document.body.appendChild(f); setTimeout(()=>f.remove(),lite?520:maxVisual?980:850);
-    if(!lite && (maxVisual && (comboNow>=2 || n>=2) || comboNow>=4 || n>=4 || cls.includes('legend'))){
-      const edge=document.createElement('div'); edge.className='fx-edge '+cls+(maxVisual?' fx-edge-premium':''); edge.style.setProperty('--fxColor',color);
-      document.body.appendChild(edge); setTimeout(()=>edge.remove(),maxVisual?1300:1100);
+    const maxVisual=effectiveGraphics()==='max';
+    const maxLoad=maxVisual?maxFxLoad():0;
+    const intense=maxVisual && (comboNow>=3 || n>=3);
+    const f=document.createElement('div');
+    f.className='fx-screen-flash '+cls+(maxVisual?' fx-screen-flash-max':'')+(intense?' fx-screen-flash-intense':'');
+    f.style.setProperty('--fxColor',color);
+    document.body.appendChild(f); setTimeout(()=>f.remove(),maxVisual?(intense?1120:940):lite?520:850);
+    if(maxVisual && maxLoad===0){
+      const chrome=document.createElement('div');
+      chrome.className='fx-chrome-flash'+(intense?' fx-chrome-flash-intense':'');
+      chrome.style.setProperty('--fxColor',color);
+      document.body.appendChild(chrome); setTimeout(()=>chrome.remove(),intense?980:760);
+    }
+    const showEdge=maxVisual ? (maxLoad<2 && (comboNow>=2 || n>=2)) : (comboNow>=4 || n>=4 || cls.includes('legend'));
+    if(!lite && showEdge){
+      const edge=document.createElement('div'); edge.className='fx-edge '+cls+(maxVisual?' fx-edge-max':''); edge.style.setProperty('--fxColor',color);
+      document.body.appendChild(edge); setTimeout(()=>edge.remove(),maxVisual?1250:1100);
     }
   }
   function comboBurst(word,n,comboNow){
     const fxLevel=fxBudgetLevel();
-    const maxVisual=manualGraphicsMax();
+    const maxVisual=effectiveGraphics()==='max';
+    const maxLoad=maxVisual?maxFxLoad():0;
+    const mega=maxVisual&&(comboNow>=5||n>=4);
+    const ultra=maxVisual&&(comboNow>=3||n>=3);
     const old=document.querySelector('.combo-burst'); if(old) old.remove();
-    const liteClass=!maxVisual && fxLevel>=2 ? ' combo-burst-lite' : '';
-    const b=document.createElement('div'); b.className='combo-burst level-'+Math.min(5,Math.max(comboNow,n))+(maxVisual?' combo-burst-premium':'')+liteClass;
-    b.innerHTML=`<strong>${word}</strong><small>${comboNow>1?tx('comboBurstLine',{n:comboNow}):tx('clearCountLine',{n})}</small>`;
-    document.body.appendChild(b); setTimeout(()=>b.classList.add('show'),10); setTimeout(()=>b.remove(),maxVisual?1320:fxLevel>=2?920:fxLevel>=1?980:1180);
+    const liteTag=(fxLevel>=2 && !maxVisual)?' combo-burst-lite':'';
+    const b=document.createElement('div');
+    b.className='combo-burst level-'+Math.min(5,Math.max(comboNow,n))+liteTag+(maxVisual?' combo-burst-premium':'')+(ultra?' combo-burst-ultra':'')+(mega?' combo-burst-mega':'');
+    if(maxVisual && maxLoad<2){
+      b.innerHTML=`<span class="combo-burst-rays" aria-hidden="true"></span><span class="combo-burst-glow" aria-hidden="true"></span><strong>${word}</strong><small>${comboNow>1?tx('comboBurstLine',{n:comboNow}):tx('clearCountLine',{n})}</small>`;
+    } else {
+      b.innerHTML=`<strong>${word}</strong><small>${comboNow>1?tx('comboBurstLine',{n:comboNow}):tx('clearCountLine',{n})}</small>`;
+    }
+    document.body.appendChild(b); setTimeout(()=>b.classList.add('show'),10);
+    setTimeout(()=>b.remove(),maxVisual?(mega?1520:ultra?1420:1360):fxLevel>=2?920:fxLevel>=1?980:1180);
   }
   function hasMove(){return pieces.some(p=>!p.used && findMove(p));}
   function moveScore(p,x,y){
