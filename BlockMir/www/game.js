@@ -862,12 +862,17 @@
     if(manual==='ultra') level=3;
     return Math.max(0, Math.min(3, level));
   }
+  function manualGraphicsMax(){
+    return (data.graphics||'auto')==='max';
+  }
   function fxParticleCount(fullCount){
+    if(manualGraphicsMax()) return fullCount;
     if(perfUltra() && fxBudgetLevel()<3) return Math.round(fullCount * 1.25);
     if(perfLow() || fxBudgetLevel()>=2) return Math.round(fullCount * 0.5);
     return fullCount;
   }
   function fxParticleScale(){
+    if(manualGraphicsMax()) return 1;
     if(perfUltra() && fxBudgetLevel()<3) return 1.25;
     if(perfLow() || fxBudgetLevel()>=2) return 0.5;
     return 1;
@@ -2611,11 +2616,12 @@
   }
   function comboBurst(word,n,comboNow){
     const fxLevel=fxBudgetLevel();
-    const maxVisual=effectiveGraphics()==='max';
+    const maxVisual=manualGraphicsMax();
     const old=document.querySelector('.combo-burst'); if(old) old.remove();
-    const b=document.createElement('div'); b.className='combo-burst level-'+Math.min(5,Math.max(comboNow,n))+(maxVisual?' combo-burst-premium':'')+(fxLevel>=2?' combo-burst-lite':'');
+    const liteClass=!maxVisual && fxLevel>=2 ? ' combo-burst-lite' : '';
+    const b=document.createElement('div'); b.className='combo-burst level-'+Math.min(5,Math.max(comboNow,n))+(maxVisual?' combo-burst-premium':'')+liteClass;
     b.innerHTML=`<strong>${word}</strong><small>${comboNow>1?tx('comboBurstLine',{n:comboNow}):tx('clearCountLine',{n})}</small>`;
-    document.body.appendChild(b); setTimeout(()=>b.classList.add('show'),10); setTimeout(()=>b.remove(),fxLevel>=2?920:maxVisual?1320:fxLevel>=1?980:1180);
+    document.body.appendChild(b); setTimeout(()=>b.classList.add('show'),10); setTimeout(()=>b.remove(),maxVisual?1320:fxLevel>=2?920:fxLevel>=1?980:1180);
   }
   function hasMove(){return pieces.some(p=>!p.used && findMove(p));}
   function moveScore(p,x,y){
