@@ -45,9 +45,23 @@ workflows:
         script: xcode-project use-profiles --project BlockMir.xcodeproj --archive-method app-store
       - name: Build ipa for distribution
         script: |
-          xcode-project build-ipa \
+          set -o pipefail
+          if ! xcode-project build-ipa \
             --project "$CM_BUILD_DIR/BlockMir.xcodeproj" \
-            --scheme "$XCODE_SCHEME"
+            --scheme "$XCODE_SCHEME"; then
+            echo "===== xcodebuild log tail ====="
+            latest_log=$(ls -t /tmp/xcodebuild_logs/*.log 2>/dev/null | head -n 1 || true)
+            if [ -n "$latest_log" ]; then
+              echo "LOG: $latest_log"
+              grep -E "error:|warning:|Provisioning|entitlement|Game Center|GAME_CENTER|CodeSign|ARCHIVE FAILED|BUILD FAILED" "$latest_log" | tail -n 80 || true
+              echo "===== last 120 lines ====="
+              tail -n 120 "$latest_log" || true
+            else
+              echo "No /tmp/xcodebuild_logs found"
+              ls -la /tmp/xcodebuild_logs 2>/dev/null || true
+            fi
+            exit 65
+          fi
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
