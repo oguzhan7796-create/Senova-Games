@@ -370,6 +370,17 @@
       </div>
     </section>
 
+    <section id="screenRestartConfirm" class="modal-screen restart-confirm-screen" aria-modal="true" role="dialog" aria-labelledby="restartConfirmTitle">
+      <div class="modal-card restart-confirm-card">
+        <h2 id="restartConfirmTitle">Yeniden başla?</h2>
+        <p id="restartConfirmDesc">Skor ve ilerleme sıfırlanır.</p>
+        <div class="restart-confirm-actions">
+          <button class="big-btn yellow" id="restartConfirmYesBtn" type="button">Evet, yeniden başla</button>
+          <button class="big-btn green" id="restartConfirmNoBtn" type="button">Vazgeç</button>
+        </div>
+      </div>
+    </section>
+
     <section id="screenGameOver" class="modal-screen">
       <div class="modal-card"><h2 id="overTitle">OYUN BİTTİ!</h2><p id="gameOverScoreLabel">Skor</p><strong id="resultScore">0</strong><p id="rewardLine"></p><button class="big-btn orange revive-btn hidden" id="reviveBtn" type="button"><span id="reviveBtnLabel">🪙 İLE DEVAM</span><small id="reviveBtnSub">Tahta korunur</small></button><button class="big-btn green" id="continueBtn">DEVAM ET</button><button class="big-btn cyan hidden" id="shareScoreBtn" type="button">SKORU PAYLAŞ</button><button class="big-btn yellow" id="againBtn">YENİDEN BAŞLA</button><button class="big-btn purple" id="menuBtn">ANA MENÜ</button></div>
     </section>

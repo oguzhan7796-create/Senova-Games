@@ -3,7 +3,7 @@
   const screens = ['screenMenu','screenClassic','screenGame','screenAdventure','screenCustomize','screenDaily','screenAchievements','screenStats','screenSettings'];
   const LS = 'blockmir_save_';
   const RUN_KEY = LS + 'activeRun';
-  const APP_VERSION = '1.3';
+  const APP_VERSION = '1.4';
   const DEBUG_UNLOCK_ALL = false;
   const TUTORIAL_VERSION = 11;
   const ADVENTURE_MAX_LEVEL = 100;
@@ -506,6 +506,10 @@
     if($('pauseResumeBtn')) $('pauseResumeBtn').textContent=tx('continue');
     if($('pauseRestartBtn')) $('pauseRestartBtn').textContent=tx('again');
     if($('pauseMenuBtn')) $('pauseMenuBtn').textContent=tx('menu');
+    if($('restartConfirmTitle')) $('restartConfirmTitle').textContent=tx('restartConfirmTitle');
+    if($('restartConfirmDesc')) $('restartConfirmDesc').textContent=tx('restartConfirmDesc');
+    if($('restartConfirmYesBtn')) $('restartConfirmYesBtn').textContent=tx('restartConfirmYes');
+    if($('restartConfirmNoBtn')) $('restartConfirmNoBtn').textContent=tx('restartConfirmNo');
     if($('pauseMusicTitle')) $('pauseMusicTitle').textContent=tx('music');
     if($('pauseSoundTitle')) $('pauseSoundTitle').textContent=tx('sound');
     if($('pauseVibrateTitle')) $('pauseVibrateTitle').textContent=tx('vibrate');
@@ -548,7 +552,7 @@
   function syncColorblindUI(){
     syncToggleCard('colorblindToggleBtn','colorblindCard',data.colorblind);
   }
-  let grid, pieces, score, mode='classic8', target=0, linesDone=0, combo=0, chainReady=false, dragging=null, undoSnap=null, busy=false, recordNotified=false, boardSize=8, currentAdventureLevel=1, selectedAdventureLevel=1, selectedAdventureWorldIdx=null, adventureScrollPin=false, levelMoves=0, levelBestCombo=0, levelChainCurrent=0, levelChainPeak=0, levelBurstPeak=0, adventureUndoUsed=false, levelStartTime=0, adventureTimer=null, dailyModId='', dailyLocks=null, dailyShrinkMargin=0, dailyPlayableSize=8, dailyMovesSinceClear=0, dailySingleShape=null, dailySingleFamilyKey='', dailySingleFamilyShapes=null, dailyBlitzEnd=0, dailyBlitzTimer=null, dailyHubTab='reward', dailyChestOpening=false, dailyNightPreviewCells=null, reviveUsed=false, gameOverPending=false, blitzExpiredPending=false, lastClearResult={rows:[],cols:[],n:0,burst:false}, gamePaused=false, pauseStartedAt=0;
+  let grid, pieces, score, mode='classic8', target=0, linesDone=0, combo=0, chainReady=false, dragging=null, undoSnap=null, busy=false, recordNotified=false, boardSize=8, currentAdventureLevel=1, selectedAdventureLevel=1, selectedAdventureWorldIdx=null, adventureScrollPin=false, levelMoves=0, levelBestCombo=0, levelChainCurrent=0, levelChainPeak=0, levelBurstPeak=0, adventureUndoUsed=false, levelStartTime=0, adventureTimer=null, dailyModId='', dailyLocks=null, dailyShrinkMargin=0, dailyPlayableSize=8, dailyMovesSinceClear=0, dailySingleShape=null, dailySingleFamilyKey='', dailySingleFamilyShapes=null, dailyBlitzEnd=0, dailyBlitzTimer=null, dailyHubTab='reward', dailyChestOpening=false, dailyNightPreviewCells=null, reviveUsed=false, gameOverPending=false, blitzExpiredPending=false, lastClearResult={rows:[],cols:[],n:0,burst:false}, gamePaused=false, pauseStartedAt=0, restartConfirmFromPause=false;
   const boardEl = $('board'), trayEl = $('pieceTray'), dragLayer = $('dragLayer');
   let photoQuotaWarned=false;
   let previewEls=[], boardCellEls=[], boardMetricsCache=null;
@@ -574,13 +578,15 @@
     return m==='apple' || p==='ios' || /iphone|ipad|ipod/.test(ua);
   }
   function appleCapablePhone(){
+    // iOS physicalMemory often reports ~3500–3900 for 4GB hardware.
     const ram=nativeRamMb();
-    return isApple() && ram>=3584;
+    return isApple() && ram>=3200;
   }
   function effectiveGraphics(){
     const g=data.graphics||'auto';
     if(g!=='auto') return g;
     if(perfAutoLevel>=2) return 'auto';
+    if(isApple() && nativeRamMb()>=2048 && perfAutoLevel<=1) return 'max';
     if(appleCapablePhone() && perfAutoLevel<=1) return 'max';
     if(autoPerfLevel()===0 && perfAutoLevel<=1) return 'max';
     return g;
@@ -596,7 +602,7 @@
   function knownCriticalDevice(){
     const text=nativeText();
     const ram=nativeRamMb();
-    return !!nativeDevice.lowRam ||
+    return (!!nativeDevice.lowRam && !isApple()) ||
       /tecno|pova|infinix|itel|max\s*19\s*pro\s*s|max\s*19|19\s*pro\s*s|\bs\s*19\b|\bs19\b|mali[- ]?400|mali[- ]?t720|mali[- ]?t820|ge8100|ge8300|ge8320|ge8322|adreno\s*30[45]|adreno\s*40[45]|adreno\s*50[456]|sc7731|sc983|sc9863|mt8321|mt8167|mt8765|msm8909|apq8009|sdm450|spreadtrum/.test(text) ||
       (ram>0 && ram<3072 && !isApple());
   }
@@ -644,12 +650,12 @@
     let level=0;
     if(knownCriticalDevice()) level=3;
     if(ram && ram<3072 && !isApple()) level=3;
-    else if(ram && ram<4096 && !(isApple() && ram>=3584)) level=2;
+    else if(ram && ram<4096 && !(isApple() && ram>=3200)) level=2;
     else if(ram && ram<6144) level=1;
     if(/mali[- ]?g31|mali[- ]?g52|mali[- ]?g57|mali[- ]?g68|adreno\s*61[023568]|adreno\s*619|powervr|ge8/.test(text)) level=Math.max(level,1);
     if(/mali[- ]?400|mali[- ]?t720|mali[- ]?t820|ge8100|ge8300|ge8320|ge8322|adreno\s*30[45]|adreno\s*40[45]|adreno\s*50[456]|sc7731|sc983|sc9863|mt8321|mt8167|mt8765|msm8909|apq8009|sdm450|spreadtrum/.test(text)) level=Math.max(level,3);
     if(/tecno|pova|sm-a26|galaxy a26|a26 5g|max\s*19/.test(text)) level=Math.max(level,2);
-    if(nativeDevice.lowRam) level=3;
+    if(nativeDevice.lowRam && !isApple()) level=3;
     if(screenPixels()>2300000 && (!ram || ram<8192) && !appleCapablePhone()) level=Math.max(level,1);
     const tablet=tabletSizeClass();
     if(tablet==='tablet-7' && (screenPixels()>1800000 || !ram || ram<6144)) level=Math.max(level,2);
@@ -657,7 +663,7 @@
     else if(tablet==='tablet-10' && ram>=6144) level=Math.min(level,1);
     if(Number(nativeDevice.sdk||0) && Number(nativeDevice.sdk)<29 && !isApple()) level=Math.max(level,2);
     if(isApple()){
-      if(ram>=3584) level=0;
+      if(ram>=3200 || (!ram && /iphone|ipad/.test(ua))) level=0;
       else if(ram>=2048) level=Math.min(level,1);
       else level=Math.min(level,2);
     }
@@ -732,8 +738,10 @@
   }
   function boardMaxSize(v){
     const chrome=gameChromeHeight(v);
-    const safeTop=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-top-extra'))||0;
-    const safeBottom=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-bottom-extra'))||0;
+    const cssTop=getComputedStyle(document.documentElement).getPropertyValue('--safe-top-extra');
+    const cssBottom=getComputedStyle(document.documentElement).getPropertyValue('--safe-bottom-extra');
+    const safeTop=Number(window.__bmSafeInsets?.top)||parseFloat(cssTop)||0;
+    const safeBottom=Number(window.__bmSafeInsets?.bottom)||parseFloat(cssBottom)||0;
     const tablet=tabletSizeClass();
     if(v.landscape){
       const sideRatio=tablet==='phone'?0.30:tablet==='tablet-10'?0.28:0.30;
@@ -820,12 +828,12 @@
     const tablet=tabletSizeClass();
     const segment=csvDeviceLevel();
     const appleStrong=appleCapablePhone();
-    const appleOk=isApple() && ram>=2048;
-    if(segment>=3 || nativeDevice.lowRam || (ram>0 && ram<3072 && !isApple())) return 3;
+    const appleOk=isApple() && (ram>=2048 || !ram);
+    if(segment>=3 || (nativeDevice.lowRam && !isApple()) || (ram>0 && ram<3072 && !isApple())) return 3;
     if(segment>=2 || (ram>0 && ram<4096 && !appleStrong && !appleOk)) return 2;
     let level=0;
     if(segment>=1 || (isAndroid() && isCoarsePointer() && (mem && mem<=4))){
-      if(!appleStrong) level=1;
+      if(!appleStrong && !appleOk) level=1;
     }
     if(tablet==='tablet-7' || knownJankDevice()) level=Math.max(level,2);
     if(mem && mem>=8 && ram>=6144 && segment===0 && !knownJankDevice()) level=0;
@@ -1661,6 +1669,7 @@
     syncSettingToggles();
   }
   function closePause(resume=true){
+    if(isRestartConfirmOpen()) closeRestartConfirm();
     if(!isPauseOpen()){ gamePaused=false; pauseStartedAt=0; document.body.classList.remove('game-paused'); return; }
     $('screenPause')?.classList.remove('active');
     document.body.classList.remove('game-paused');
@@ -1687,14 +1696,89 @@
     saveRunState({force:true});
     show('screenMenu');
   }
-  function restartFromPause(){
-    closePause(false);
+  function isRestartConfirmOpen(){ return !!$('screenRestartConfirm')?.classList.contains('active'); }
+  function hasRestartProgress(){
+    if((score|0)>0 || (levelMoves|0)>0 || (linesDone|0)>0) return true;
+    if(Array.isArray(grid)){
+      for(let r=0;r<grid.length;r++){
+        const row=grid[r]; if(!row) continue;
+        for(let c=0;c<row.length;c++){ if(row[c]) return true; }
+      }
+    }
+    return false;
+  }
+  function doRestartRun(){
     playTone('tap');
     if(mode==='daily') startDailyChallenge(dailyModId);
     else startGame(mode, currentAdventureLevel);
   }
+  function closeRestartConfirm(){
+    $('screenRestartConfirm')?.classList.remove('active');
+    restartConfirmFromPause=false;
+  }
+  function openRestartConfirm(fromPause=false){
+    restartConfirmFromPause=!!fromPause;
+    if(fromPause) $('screenPause')?.classList.remove('active');
+    $('screenRestartConfirm')?.classList.add('active');
+  }
+  function requestRestart(fromPause=false){
+    playTone('tap');
+    if(!hasRestartProgress()){
+      if(fromPause) closePause(false);
+      doRestartRun();
+      return;
+    }
+    if(fromPause){
+      // Keep gamePaused; only swap pause UI for confirm
+      openRestartConfirm(true);
+      return;
+    }
+    if(!gamePaused && gameScreenActive() && !gameOverPending && !busy){
+      saveRunState({force:true});
+      cancelActiveDrag(false);
+      gamePaused=true;
+      pauseStartedAt=Date.now();
+      stopAdventureTimer(false);
+      stopDailyBlitzTimer(false);
+      stopFpsSampling();
+      document.body.classList.add('game-paused');
+    }
+    openRestartConfirm(false);
+  }
+  function confirmRestart(){
+    const fromPause=restartConfirmFromPause;
+    closeRestartConfirm();
+    closePause(false);
+    doRestartRun();
+    void fromPause;
+  }
+  function cancelRestartConfirm(){
+    playTone('tap');
+    const fromPause=restartConfirmFromPause;
+    closeRestartConfirm();
+    if(fromPause){
+      $('screenPause')?.classList.add('active');
+      return;
+    }
+    if(!gamePaused){ document.body.classList.remove('game-paused'); return; }
+    const delta=Math.max(0, Date.now()-pauseStartedAt);
+    if(delta>0){
+      if(mode==='adventure' && levelStartTime) levelStartTime+=delta;
+      if(mode==='daily' && dailyModActive('blitz') && dailyBlitzEnd) dailyBlitzEnd+=delta;
+    }
+    gamePaused=false;
+    pauseStartedAt=0;
+    document.body.classList.remove('game-paused');
+    if(gameScreenActive()){
+      if(mode==='adventure') startAdventureTimer();
+      else if(mode==='daily' && dailyModActive('blitz')) startDailyBlitzTimer();
+      startFpsSampling();
+    }
+  }
+  function restartFromPause(){ requestRestart(true); }
   function show(id){
     if(id!=='screenGame'){
+      closeRestartConfirm();
       closePause(false);
       if(gameOverPending) finalizeGameOver();
       if(mode==='tutorial') exitTutorialPlay();
@@ -4341,8 +4425,10 @@
   if($('pauseResumeBtn')) $('pauseResumeBtn').onclick=()=>{ playTone('tap'); closePause(true); };
   if($('pauseRestartBtn')) $('pauseRestartBtn').onclick=restartFromPause;
   if($('pauseMenuBtn')) $('pauseMenuBtn').onclick=()=>{ playTone('tap'); exitPauseToMenu(); };
+  if($('restartConfirmYesBtn')) $('restartConfirmYesBtn').onclick=()=>{ playTone('tap'); confirmRestart(); };
+  if($('restartConfirmNoBtn')) $('restartConfirmNoBtn').onclick=cancelRestartConfirm;
   if($('shareScoreBtn')) $('shareScoreBtn').onclick=()=>{ playTone('tap'); shareCurrentScore(); };
-  $('restartBtn').onclick=()=>{ if(mode==='daily') startDailyChallenge(dailyModId); else startGame(mode, currentAdventureLevel); };
+  $('restartBtn').onclick=()=>requestRestart(false);
   $('againBtn').onclick=()=>{ finalizeGameOver(); $('screenGameOver').classList.remove('active'); if(mode==='daily') startDailyChallenge(dailyModId); else startGame(mode, currentAdventureLevel); };
   $('continueBtn').onclick=()=>{ finalizeGameOver(); $('screenGameOver').classList.remove('active'); if(mode==='adventure') show('screenAdventure'); else if(mode==='daily') show('screenDaily'); else startGame(mode); };
   $('menuBtn').onclick=()=>{ finalizeGameOver(); $('screenGameOver').classList.remove('active'); show('screenMenu'); };
@@ -4366,7 +4452,7 @@
     const ios = isApple();
     const messages = ios ? {
       signed_in: tr ? 'Game Center bağlantısı kuruldu.' : 'Connected to Game Center.',
-      sign_in_failed: tr ? 'Sıralama tablosu yakında iOS için eklenecek.' : 'Leaderboards coming soon on iOS.',
+      sign_in_failed: tr ? 'Game Center oturumu açılamadı. Ayarlar → Game Center hesabını kontrol et.' : 'Could not sign in to Game Center. Check Settings → Game Center.',
       leaderboard_failed: tr ? 'Sıralama tablosu şu an kullanılamıyor.' : 'Leaderboard is not available right now.',
       unknown_leaderboard: tr ? 'Bu mod için sıralama tablosu yok.' : 'No leaderboard for this mode.'
     } : {
@@ -4555,6 +4641,7 @@
     if($('screenPrivacy')?.classList.contains('active')){ closePrivacy(); return true; }
     if($('screenTutorial')?.classList.contains('active')){ closeTutorial(false); return true; }
     if($('screenGameOver')?.classList.contains('active')){ closeGameOverFromBack(); return true; }
+    if(isRestartConfirmOpen()){ cancelRestartConfirm(); return true; }
     if(isPauseOpen()){ closePause(true); return true; }
     if($('screenGame')?.classList.contains('active')){ openPause(); return true; }
     const active=screens.find(s=>$(s)?.classList.contains('active'));

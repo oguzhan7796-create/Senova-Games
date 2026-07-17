@@ -12,6 +12,9 @@ final class WebViewController: UIViewController {
         view.backgroundColor = UIColor(red: 0.09, green: 0.02, blue: 0.12, alpha: 1)
         configureWebView()
         loadGame()
+        GameCenterManager.shared.configure(host: self) { [weak self] status in
+            self?.notifyPlayGamesStatus(status)
+        }
     }
 
     override var prefersStatusBarHidden: Bool { true }
@@ -22,15 +25,35 @@ final class WebViewController: UIViewController {
         injectSafeAreaInsets()
     }
 
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        injectSafeAreaInsets()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        injectSafeAreaInsets()
+        // Layout oturunca bir kez daha (WKWebView bazen ilk anda 0 inset verir)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+            self?.injectSafeAreaInsets()
+        }
+    }
+
     // WKWebView, contentInsetAdjustmentBehavior = .never iken env(safe-area-inset-*)
     // degerlerini 0 bildirir; gercek centik degerlerini CSS degiskenlerine biz yazariz.
     private func injectSafeAreaInsets() {
         guard let webView = webView else { return }
-        let top = Int(view.safeAreaInsets.top.rounded())
-        let bottom = Int(view.safeAreaInsets.bottom.rounded())
+        let topInset = max(view.safeAreaInsets.top, webView.safeAreaInsets.top)
+        let bottomInset = max(view.safeAreaInsets.bottom, webView.safeAreaInsets.bottom)
+        let top = Int(topInset.rounded(.up))
+        let bottom = Int(bottomInset.rounded(.up))
+        // Hem kaynak (--android-*) hem cozulmus (--safe-*-extra) yaz: JS parseFloat ve CSS max() sapmasin.
         let js = "try{var r=document.documentElement.style;" +
             "r.setProperty('--android-top','\(top)px');" +
             "r.setProperty('--android-bottom','\(bottom)px');" +
+            "r.setProperty('--safe-top-extra','\(top)px');" +
+            "r.setProperty('--safe-bottom-extra','\(bottom)px');" +
+            "window.__bmSafeInsets={top:\(top),bottom:\(bottom)};" +
             "window.dispatchEvent(new Event('resize'));}catch(e){}"
         webView.evaluateJavaScript(js, completionHandler: nil)
     }
@@ -209,9 +232,13 @@ extension WebViewController: WKScriptMessageHandler {
             shareText(body["text"] as? String ?? "BlockMir")
         case "shareImage":
             shareImage(body["dataUrl"] as? String ?? "", text: body["text"] as? String ?? "BlockMir")
-        case "submitScore", "showLeaderboard":
-            // Game Center v1.1 — oyun calisir, siralama iOS'ta sonra
-            notifyPlayGamesStatus("sign_in_failed")
+        case "submitScore":
+            let mod = body["mod"] as? String ?? ""
+            let score = body["score"] as? Int ?? 0
+            GameCenterManager.shared.submitScore(mod: mod, score: score)
+        case "showLeaderboard":
+            let mod = body["mod"] as? String ?? "classic8"
+            GameCenterManager.shared.showLeaderboard(mod: mod)
         default:
             break
         }

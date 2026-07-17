@@ -1242,9 +1242,21 @@ body.vp-tall #screenGame.game-screen.active{
   grid-template-rows:auto auto minmax(0,1fr) auto auto;
   align-content:center!important;
 }
+/* Uzun iPhone'larda center, macera/meydan/gece ust UI'yi centik bolgesine tasir — uste sabitle. */
+body.vp-tall #screenGame.adventure-active.game-screen.active,
+body.vp-tall #screenGame.daily-mode-active.game-screen.active,
+body.vp-tall #screenGame.daily-night-game.game-screen.active{
+  align-content:flex-start!important;
+}
 body.vp-tall #screenGame .board-shell{
   margin-top:auto!important;
   margin-bottom:auto!important;
+}
+body.vp-tall #screenGame.adventure-active .board-shell,
+body.vp-tall #screenGame.daily-mode-active .board-shell,
+body.vp-tall #screenGame.daily-night-game .board-shell{
+  margin-top:0!important;
+  margin-bottom:0!important;
 }
 body.vp-short{
   --game-board-size:calc(var(--app-h) - var(--game-chrome,310px) - var(--safe-top-extra,0px) - var(--safe-bottom-extra,0px));
@@ -3668,6 +3680,39 @@ body.game-paused #screenGame{
   padding:calc(10px + var(--safe-top-extra,0px)) 12px calc(10px + var(--safe-bottom-extra,0px))!important;
   overflow-y:auto!important;
   -webkit-overflow-scrolling:touch;
+}
+.restart-confirm-screen{
+  z-index:24500!important;
+  padding:calc(10px + var(--safe-top-extra,0px)) 12px calc(10px + var(--safe-bottom-extra,0px))!important;
+}
+.restart-confirm-card{
+  width:min(100%,400px)!important;
+  text-align:center;
+  padding:22px 18px 18px!important;
+}
+.restart-confirm-card h2{
+  margin:0 0 10px;
+  font-size:clamp(26px,6.5vw,34px);
+  line-height:.95;
+  color:#ffe98a;
+  text-shadow:0 4px 0 #0006;
+}
+.restart-confirm-card p{
+  margin:0 0 16px;
+  font-size:clamp(14px,3.6vw,17px);
+  font-weight:800;
+  color:#e8d9ff;
+  line-height:1.35;
+}
+.restart-confirm-actions{
+  display:grid;
+  gap:8px;
+}
+.restart-confirm-actions .big-btn{
+  min-height:52px!important;
+  height:auto!important;
+  font-size:clamp(16px,4vw,20px)!important;
+  padding:10px 14px!important;
 }
 .pause-card{
   width:min(100%,420px)!important;

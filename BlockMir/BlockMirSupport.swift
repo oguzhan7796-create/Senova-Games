@@ -14,7 +14,7 @@ enum BlockMirDeviceInfo {
             "height": Int(screen.height * scale),
             "densityDpi": Int(160 * scale),
             "ramMb": ProcessInfo.processInfo.physicalMemory / (1024 * 1024),
-            "lowRam": ProcessInfo.processInfo.physicalMemory < (3 * 1024 * 1024 * 1024),
+            "lowRam": false,
         ]
         guard let data = try? JSONSerialization.data(withJSONObject: info),
               let json = String(data: data, encoding: .utf8) else {
