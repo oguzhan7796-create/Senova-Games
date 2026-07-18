@@ -874,13 +874,21 @@
     return (data.graphics||'auto')==='max';
   }
   function fxParticleCount(fullCount){
-    if(manualGraphicsMax()) return fullCount;
+    if(manualGraphicsMax()){
+      if(perfAutoLevel>=2) return Math.round(fullCount * 0.5);
+      if(perfAutoLevel>=1) return Math.round(fullCount * 0.72);
+      return fullCount;
+    }
     if(perfUltra() && fxBudgetLevel()<3) return Math.round(fullCount * 1.25);
     if(perfLow() || fxBudgetLevel()>=2) return Math.round(fullCount * 0.5);
     return fullCount;
   }
   function fxParticleScale(){
-    if(manualGraphicsMax()) return 1;
+    if(manualGraphicsMax()){
+      if(perfAutoLevel>=2) return 0.62;
+      if(perfAutoLevel>=1) return 0.82;
+      return 1;
+    }
     if(perfUltra() && fxBudgetLevel()<3) return 1.25;
     if(perfLow() || fxBudgetLevel()>=2) return 0.5;
     return 1;
@@ -890,8 +898,9 @@
   }
   function maxFxLoad(){
     if(effectiveGraphics()!=='max') return 0;
-    if(!isNativeShell()) return 1;
-    return Math.max(0, Math.min(2, fxBudgetLevel()));
+    const fpsClamp = (data.graphics==='max') ? perfAutoLevel : 0;
+    if(!isNativeShell()) return Math.max(1, fpsClamp);
+    return Math.max(0, Math.min(2, Math.max(fxBudgetLevel(), fpsClamp)));
   }
   function updatePerfMode(){
     syncRamTightProfile();
@@ -899,8 +908,9 @@
     const fxLevel=fxBudgetLevel();
     const segment=csvDeviceLevel();
     const stripVisuals=!allowFullVisuals();
-    const effLevel=stripVisuals ? level : Math.min(level,1);
-    const effFxLevel=stripVisuals ? fxLevel : Math.min(fxLevel,1);
+    const maxSoftClamp=(data.graphics==='max' && perfAutoLevel>=2) ? 2 : (data.graphics==='max' && perfAutoLevel>=1) ? 1 : 0;
+    const effLevel=stripVisuals ? level : Math.min(level, Math.max(1, maxSoftClamp));
+    const effFxLevel=stripVisuals ? fxLevel : Math.min(fxLevel, Math.max(1, maxSoftClamp));
     document.body.classList.toggle('ram-tight', ramTightDevice);
     document.body.classList.toggle('perf-lite', effLevel>=1);
     document.body.classList.toggle('perf-low', effLevel>=2);
@@ -938,7 +948,7 @@
       !$('screenPrivacy')?.classList.contains('active');
   }
   function shouldSampleFps(){
-    return data.graphics==='auto' && gameScreenActive();
+    return (data.graphics==='auto' || data.graphics==='max') && gameScreenActive();
   }
   function stopFpsSampling(){
     if(fpsRaf) cancelAnimationFrame(fpsRaf);
@@ -2280,6 +2290,7 @@
   function clearPreview(){
     boardEl.classList.remove('clear-ready','drop-ready','drop-blocked');
     boardEl.removeAttribute('data-clear-count');
+    boardEl.removeAttribute('data-clear-label');
     previewEls.forEach(e=>e.classList.remove('preview-ok','preview-bad','preview-clear','preview-line','preview-mirror','hint-piece'));
     previewEls=[];
     if(mode==='daily'&&dailyModActive('night')){ dailyNightPreviewCells=null; refreshNightFog(); updateNightBeam(0,0,false); }
@@ -2311,7 +2322,9 @@
       refreshNightFog();
     }
     if(showLinePreview && clear.count){
-      boardEl.classList.add('clear-ready'); boardEl.dataset.clearCount=String(clear.count);
+      boardEl.classList.add('clear-ready');
+      boardEl.dataset.clearCount=String(clear.count);
+      boardEl.dataset.clearLabel=tx('clearReadyBanner',{n:clear.count});
       const rowSet=new Set(clear.rows), colSet=new Set(clear.cols);
       const placedSet=new Set(allPlacementCells(piece.shape,px,py,mirror).map(([x,y])=>`${x},${y}`));
       boardCellEls.forEach(el=>{
@@ -3345,7 +3358,7 @@
   }
   function renderThemes(){
     const list=$('themeList'); list.innerHTML=''; const all=[...themes]; if(data.customPhoto) all.unshift({id:'custom',name:tx('customPhotoTheme'),bg:`url('${data.customPhoto}')`,free:true});
-    all.forEach(t=>{const c=document.createElement('button'); c.className='theme-card '+(data.theme===t.id?'active':''); c.innerHTML=`<div class="thumb" style="--bg:${t.bg}"></div><b>${t.name}${(!isOwned(t,'themes'))?' • '+t.price+'🪙':(data.theme===t.id?' • '+tx('active'):'')}</b>`; c.onclick=()=>{ if(!isOwned(t,'themes')) return buy(t,'themes',t.price,t.name,()=>{data.theme=t.id}); data.theme=t.id; refreshCounters(); renderThemes(); }; list.appendChild(c);});
+    all.forEach(t=>{const c=document.createElement('button'); c.className='theme-card '+(data.theme===t.id?'active':''); if(data.theme===t.id) c.dataset.activeLabel='✓ '+tx('active'); c.innerHTML=`<div class="thumb" style="--bg:${t.bg}"></div><b>${t.name}${(!isOwned(t,'themes'))?' • '+t.price+'🪙':(data.theme===t.id?' • '+tx('active'):'')}</b>`; c.onclick=()=>{ if(!isOwned(t,'themes')) return buy(t,'themes',t.price,t.name,()=>{data.theme=t.id}); data.theme=t.id; refreshCounters(); renderThemes(); }; list.appendChild(c);});
     $('blurRange').value=data.blur; $('darkRange').value=data.dark;
   }
   function marketRarity(item,type){
