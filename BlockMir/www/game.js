@@ -1591,7 +1591,7 @@
     else hideAdventureTimer();
     syncDailyModeFx();
   }
-  function currentBestLabel(){ return (mode==='classic10' ? '10x10 ' : '8x8 ') + tx('bestSuffix'); }
+  function currentBestLabel(){ return tx('bestSuffix'); }
   function isStorageQuotaError(e){
     return e && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED' || e.code === 22 || e.code === 1014);
   }
@@ -2622,21 +2622,22 @@
     return map[effect]||map.star;
   }
   function spawnMaxPremiumLayers(cx, cy, cls, color, comboNow, n, load=0){
-    const ultra=comboNow>=3 || n>=3;
-    const mega=comboNow>=5 || n>=4;
-    if(load>=2 && !ultra) return;
+    const ultra=comboNow>=4 || n>=4;
+    const mega=comboNow>=6 || n>=5;
+    if(load>=1 && !ultra) return;
+    if(load>=2) return;
     const halo=document.createElement('div');
     halo.className='fx-burst-halo '+cls+(mega?' fx-burst-halo-mega':ultra?' fx-burst-halo-ultra':'');
     halo.style.left=cx+'px'; halo.style.top=cy+'px'; halo.style.setProperty('--fxColor',color||'#ffd84e');
-    document.body.appendChild(halo); setTimeout(()=>halo.remove(),mega?1240:ultra?980:820);
-    const sparkN=load>=2?(mega?6:ultra?4:3):load>=1?(mega?12:ultra?8:5):(mega?20:ultra?14:9);
+    document.body.appendChild(halo); setTimeout(()=>halo.remove(),mega?980:ultra?780:640);
+    const sparkN=load>=1?(mega?5:ultra?3:2):(mega?10:ultra?6:4);
     const frag=document.createDocumentFragment();
     const sparks=[];
     for(let i=0;i<sparkN;i++){
       const s=document.createElement('div');
       s.className='fx-gold-spark'+(i%4===0?' fx-gold-spark-lg':'');
       const ang=(Math.PI*2*i)/sparkN+Math.random()*.55;
-      const dist=48+Math.random()*(mega?200:ultra?150:110);
+      const dist=40+Math.random()*(mega?140:ultra?100:72);
       s.style.left=cx+'px'; s.style.top=cy+'px';
       s.style.setProperty('--sx',(Math.cos(ang)*dist)+'px');
       s.style.setProperty('--sy',(Math.sin(ang)*dist)+'px');
@@ -2644,12 +2645,12 @@
       sparks.push(s); frag.appendChild(s);
     }
     document.body.appendChild(frag);
-    setTimeout(()=>sparks.forEach(s=>s.remove()),mega?1040:ultra?860:740);
+    setTimeout(()=>sparks.forEach(s=>s.remove()),mega?820:ultra?680:560);
     if(mega && load===0){
       const ring3=document.createElement('div');
       ring3.className='fx-wave fx-wave-tertiary fx-wave-max '+cls;
       ring3.style.left=cx+'px'; ring3.style.top=cy+'px'; ring3.style.setProperty('--fxColor',color||'#fff');
-      document.body.appendChild(ring3); setTimeout(()=>ring3.remove(),1450);
+      document.body.appendChild(ring3); setTimeout(()=>ring3.remove(),1100);
     }
   }
   function spawnFx(rows=[],cols=[],n=1,comboNow=1){
@@ -2661,22 +2662,23 @@
     const maxVisual=manual==='max', highVisual=manual==='high';
     const maxLoad=maxVisual?maxFxLoad():0;
     const lite=fxLevel>=1, low=fxLevel>=2, veryLow=fxLevel>=3, heavy=heavyAdventure() && !maxVisual;
-    if(shouldSampleFps() && !veryLow && (heavy || comboNow>=3 || n>=3)) startFpsSampling(4200);
+    if(shouldSampleFps() && !veryLow && (heavy || comboNow>=4 || n>=3)) startFpsSampling(4200);
     const effect=activeEffectId()||'star'; const cls='fx-'+effect; const meta=effectMeta(effect);
     const pool=meta.chars||['✦'];
-    const baseCount=34+n*18+comboNow*14;
-    const maxMega=maxVisual&&(comboNow>=5||n>=4);
-    const capFull=maxMega?58:52;
-    const cap=maxVisual?(maxLoad>=2?(maxMega?34:30):maxLoad>=1?(maxMega?46:40):capFull):highVisual?28:veryLow?0:low?0:lite?12:heavy?16:38;
-    const mult=maxVisual?(maxLoad>=2?.28:maxLoad>=1?.38:.5):highVisual?.26:veryLow?0:low?.06:lite?.16:heavy?.2:.34;
-    const minCount=maxVisual?(maxLoad>=2?8:maxLoad>=1?10:12):highVisual?8:veryLow?0:low?0:lite?4:7;
-    const count=Math.min(cap, Math.max(minCount, Math.round(baseCount * mult * (maxVisual?(maxLoad>=2?.55:maxLoad>=1?.75:1):fxParticleScale()))));
+    const comboScale=comboNow<=1?1:comboNow===2?.55:comboNow===3?.7:.85;
+    const baseCount=Math.round((28+n*12+Math.min(comboNow,4)*5)*comboScale);
+    const maxMega=maxVisual&&(comboNow>=6||n>=5);
+    const capFull=maxMega?36:28;
+    const cap=maxVisual?(maxLoad>=2?(maxMega?18:14):maxLoad>=1?(maxMega?24:18):capFull):highVisual?20:veryLow?0:low?0:lite?10:heavy?12:28;
+    const mult=maxVisual?(maxLoad>=2?.22:maxLoad>=1?.3:.38):highVisual?.22:veryLow?0:low?.06:lite?.14:heavy?.18:.28;
+    const minCount=maxVisual?(maxLoad>=2?5:maxLoad>=1?6:8):highVisual?6:veryLow?0:low?0:lite?3:5;
+    const count=Math.min(cap, Math.max(minCount, Math.round(baseCount * mult * (maxVisual?(maxLoad>=2?.5:maxLoad>=1?.65:1):fxParticleScale()))));
     const lineCenters=[];
     const centerFor=(x,y)=>({
       x:rect.left+metrics.pad+x*metrics.step+metrics.cell/2,
       y:rect.top+metrics.pad+y*metrics.step+metrics.cell/2
     });
-    const allowBeams=maxVisual || highVisual || (!low && !heavy && (!lite || comboNow>=4));
+    const allowBeams=maxVisual || highVisual || (!low && !heavy && (!lite || comboNow>=5));
     rows.forEach(y=>{ if(cellAt(Math.floor(boardSize/2),y)){ const c=centerFor(Math.floor(boardSize/2),y); lineCenters.push({...c,dir:'row'}); if(allowBeams) createLineBeam('row', c.y, rect, cls); }});
     cols.forEach(x=>{ if(cellAt(x,Math.floor(boardSize/2))){ const c=centerFor(x,Math.floor(boardSize/2)); lineCenters.push({...c,dir:'col'}); if(allowBeams) createLineBeam('col', c.x, rect, cls); }});
     if(!lineCenters.length) lineCenters.push({x:rect.left+rect.width/2,y:rect.top+rect.height/2,dir:'center'});
@@ -2686,45 +2688,46 @@
       setTimeout(()=>boardEl.classList.remove('micro-clear'),150);
       return;
     }
-    if((meta.wave || comboNow>=2) && (maxVisual || highVisual || (!low && !heavy && (!lite || comboNow>=4)))){
+    if((meta.wave || comboNow>=3) && (maxVisual || highVisual || (!low && !heavy && (!lite || comboNow>=5)))){
       const ring=document.createElement('div'); ring.className='fx-wave '+cls+(maxVisual?' fx-wave-max':'');
       const c=lineCenters[0]; ring.style.left=c.x+'px'; ring.style.top=c.y+'px'; ring.style.setProperty('--fxColor',meta.color||'#fff');
-      document.body.appendChild(ring); setTimeout(()=>ring.remove(),maxVisual?1100:lite?760:1050);
-      if(maxVisual && (comboNow>=2 || n>=2) && maxLoad<2){
+      document.body.appendChild(ring); setTimeout(()=>ring.remove(),maxVisual?900:lite?640:880);
+      if(maxVisual && (comboNow>=4 || n>=3) && maxLoad===0){
         const ring2=document.createElement('div'); ring2.className='fx-wave fx-wave-secondary fx-wave-max '+cls;
         ring2.style.left=c.x+'px'; ring2.style.top=c.y+'px'; ring2.style.setProperty('--fxColor',meta.color||'#fff');
-        document.body.appendChild(ring2); setTimeout(()=>ring2.remove(),1280);
+        document.body.appendChild(ring2); setTimeout(()=>ring2.remove(),1040);
       }
     }
-    const flashAt=maxVisual ? (comboNow>=2 || n>=2) : (meta.screen || comboNow>=3 || n>=3);
+    const flashAt=maxVisual ? (comboNow>=3 || n>=3) : (meta.screen || comboNow>=4 || n>=3);
     if(flashAt && (maxVisual || highVisual || (!low && !heavy && (!lite || comboNow>=5 || n>=4)))){
       createScreenFlash(cls, comboNow, n, meta.color||'#fff');
-      if(maxVisual && lineCenters[0]){
+      if(maxVisual && lineCenters[0] && (comboNow>=4 || n>=3) && maxLoad===0){
         const c=lineCenters[0];
-        const core=document.createElement('div'); core.className='fx-burst-core '+cls+(comboNow>=4||n>=3?' fx-burst-core-intense':'');
+        const core=document.createElement('div'); core.className='fx-burst-core '+cls+(comboNow>=5||n>=4?' fx-burst-core-intense':'');
         core.style.left=c.x+'px'; core.style.top=c.y+'px'; core.style.setProperty('--fxColor',meta.color||'#fff');
-        document.body.appendChild(core); setTimeout(()=>core.remove(),comboNow>=3||n>=3?1040:820);
+        document.body.appendChild(core); setTimeout(()=>core.remove(),comboNow>=5||n>=4?900:720);
         spawnMaxPremiumLayers(c.x,c.y,cls,meta.color||'#fff',comboNow,n,maxLoad);
       }
     }
     const frag=document.createDocumentFragment();
     const particles=[];
+    const powerScale=maxVisual ? (comboNow<=2?.72:comboNow===3?.82:.9) : 1;
     for(let i=0;i<count;i++){
       const center=lineCenters[i%lineCenters.length];
       const p=document.createElement('div'); p.className='fx-particle '+cls+' fx-size-'+(i%4)+(maxVisual?' fx-particle-max':''); p.textContent=pool[i%pool.length];
-      const x=center.x + (Math.random()-.5)*Math.min(270,rect.width*.78); const y=center.y + (Math.random()-.5)*Math.min(240,rect.height*.58);
-      const power=((meta.screen||comboNow>=3?230:170) + n*12) * (maxVisual ? 1 : highVisual ? .64 : veryLow ? .32 : low ? .42 : lite ? .58 : heavy ? .62 : 1);
-      const tx=(Math.random()-.5)*power, ty=(Math.random()-.72)*(power+90);
+      const x=center.x + (Math.random()-.5)*Math.min(220,rect.width*.7); const y=center.y + (Math.random()-.5)*Math.min(190,rect.height*.5);
+      const power=((meta.screen||comboNow>=4?180:130) + n*8) * powerScale * (maxVisual ? 1 : highVisual ? .58 : veryLow ? .32 : low ? .42 : lite ? .52 : heavy ? .55 : .9);
+      const tx=(Math.random()-.5)*power, ty=(Math.random()-.72)*(power+70);
       p.style.left=x+'px'; p.style.top=y+'px'; p.style.setProperty('--tx',tx+'px'); p.style.setProperty('--ty',ty+'px'); p.style.setProperty('--fxColor',meta.color||'#fff');
       particles.push(p);
       frag.appendChild(p);
     }
     document.body.appendChild(frag);
-    setTimeout(()=>particles.forEach(p=>p.remove()),maxVisual?(maxMega?1280:1180):veryLow?380:low?460:lite?620:820);
-    if((comboNow>=2 || n>=2) && !lite && !heavy){ boardEl.classList.add(maxVisual?'board-pulse-max':'board-pulse'); setTimeout(()=>boardEl.classList.remove(maxVisual?'board-pulse-max':'board-pulse'),maxVisual?460:360); }
-    if((comboNow>=3 || n>=3) && !lite && !heavy){
-      const shakeCls=maxVisual&&(comboNow>=5||n>=4)&&maxLoad===0?'screen-shake-max':'screen-shake-soft';
-      document.body.classList.add(shakeCls); setTimeout(()=>document.body.classList.remove(shakeCls),maxVisual?300:220);
+    setTimeout(()=>particles.forEach(p=>p.remove()),maxVisual?(maxMega?1040:920):veryLow?380:low?460:lite?580:740);
+    if((comboNow>=3 || n>=3) && !lite && !heavy){ boardEl.classList.add(maxVisual?'board-pulse-max':'board-pulse'); setTimeout(()=>boardEl.classList.remove(maxVisual?'board-pulse-max':'board-pulse'),maxVisual?360:300); }
+    if((comboNow>=4 || n>=4) && !lite && !heavy){
+      const shakeCls=maxVisual&&(comboNow>=6||n>=5)&&maxLoad===0?'screen-shake-max':'screen-shake-soft';
+      document.body.classList.add(shakeCls); setTimeout(()=>document.body.classList.remove(shakeCls),maxVisual?240:180);
     }
   }
   function createLineBeam(dir, pos, rect, cls){
@@ -2766,40 +2769,40 @@
     const lite=perfLite();
     const maxVisual=effectiveGraphics()==='max';
     const maxLoad=maxVisual?maxFxLoad():0;
-    const intense=maxVisual && (comboNow>=3 || n>=3);
+    const intense=maxVisual && (comboNow>=5 || n>=4);
     const f=document.createElement('div');
     f.className='fx-screen-flash '+cls+(maxVisual?' fx-screen-flash-max':'')+(intense?' fx-screen-flash-intense':'');
     f.style.setProperty('--fxColor',color);
-    document.body.appendChild(f); setTimeout(()=>f.remove(),maxVisual?(intense?1120:940):lite?520:850);
-    if(maxVisual && maxLoad===0){
+    document.body.appendChild(f); setTimeout(()=>f.remove(),maxVisual?(intense?900:720):lite?480:700);
+    if(maxVisual && maxLoad===0 && (comboNow>=4 || n>=3)){
       const chrome=document.createElement('div');
       chrome.className='fx-chrome-flash'+(intense?' fx-chrome-flash-intense':'');
       chrome.style.setProperty('--fxColor',color);
-      document.body.appendChild(chrome); setTimeout(()=>chrome.remove(),intense?980:760);
+      document.body.appendChild(chrome); setTimeout(()=>chrome.remove(),intense?780:600);
     }
-    const showEdge=maxVisual ? (maxLoad<2 && (comboNow>=2 || n>=2)) : (comboNow>=4 || n>=4 || cls.includes('legend'));
+    const showEdge=maxVisual ? (maxLoad===0 && (comboNow>=4 || n>=4)) : (comboNow>=5 || n>=4 || cls.includes('legend'));
     if(!lite && showEdge){
       const edge=document.createElement('div'); edge.className='fx-edge '+cls+(maxVisual?' fx-edge-max':''); edge.style.setProperty('--fxColor',color);
-      document.body.appendChild(edge); setTimeout(()=>edge.remove(),maxVisual?1250:1100);
+      document.body.appendChild(edge); setTimeout(()=>edge.remove(),maxVisual?980:900);
     }
   }
   function comboBurst(word,n,comboNow){
     const fxLevel=fxBudgetLevel();
     const maxVisual=effectiveGraphics()==='max';
     const maxLoad=maxVisual?maxFxLoad():0;
-    const mega=maxVisual&&(comboNow>=5||n>=4);
-    const ultra=maxVisual&&(comboNow>=3||n>=3);
+    const mega=maxVisual&&(comboNow>=6||n>=5);
+    const ultra=maxVisual&&(comboNow>=4||n>=4);
     const old=document.querySelector('.combo-burst'); if(old) old.remove();
-    const liteTag=(fxLevel>=2 && !maxVisual)?' combo-burst-lite':'';
+    const liteTag=(fxLevel>=2 && !maxVisual) || (maxVisual && comboNow<=2)?' combo-burst-lite':'';
     const b=document.createElement('div');
-    b.className='combo-burst level-'+Math.min(5,Math.max(comboNow,n))+liteTag+(maxVisual?' combo-burst-premium':'')+(ultra?' combo-burst-ultra':'')+(mega?' combo-burst-mega':'');
-    if(maxVisual && maxLoad<2){
+    b.className='combo-burst level-'+Math.min(5,Math.max(comboNow,n))+liteTag+(maxVisual&&comboNow>=3?' combo-burst-premium':'')+(ultra?' combo-burst-ultra':'')+(mega?' combo-burst-mega':'');
+    if(maxVisual && maxLoad===0 && comboNow>=4){
       b.innerHTML=`<span class="combo-burst-rays" aria-hidden="true"></span><span class="combo-burst-glow" aria-hidden="true"></span><strong>${word}</strong><small>${comboNow>1?tx('comboBurstLine',{n:comboNow}):tx('clearCountLine',{n})}</small>`;
     } else {
       b.innerHTML=`<strong>${word}</strong><small>${comboNow>1?tx('comboBurstLine',{n:comboNow}):tx('clearCountLine',{n})}</small>`;
     }
     document.body.appendChild(b); setTimeout(()=>b.classList.add('show'),10);
-    setTimeout(()=>b.remove(),maxVisual?(mega?1520:ultra?1420:1360):fxLevel>=2?920:fxLevel>=1?980:1180);
+    setTimeout(()=>b.remove(),maxVisual?(mega?1200:ultra?1080:920):fxLevel>=2?820:fxLevel>=1?900:1040);
   }
   function hasMove(){return pieces.some(p=>!p.used && findMove(p));}
   function moveScore(p,x,y){
