@@ -3,8 +3,9 @@
 #
 # Codemagic panelinde (bir kez):
 # 1. Team settings -> codemagic.yaml settings -> ON
-# 2. Team integrations -> Developer Portal / App Store Connect API key adi: Codemagic
-# 3. Build calistir -> IPA otomatik App Store Connect'e yuklenir
+# 2. iOS code signing -> production sertifika + App Store profil (com.blockmir.game)
+# 3. Team integrations -> Developer Portal -> API key adi: Codemagic
+# 4. Start new build -> IPA App Store Connect'e yuklenir
 
 workflows:
   blockmir-ios-release:
@@ -14,6 +15,9 @@ workflows:
     integrations:
       app_store_connect: Codemagic
     environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.blockmir.game
       vars:
         XCODE_PROJECT: BlockMir.xcodeproj
         XCODE_SCHEME: BlockMir
@@ -37,15 +41,8 @@ workflows:
             fi
           done
           echo "www OK"
-      - name: Fetch App Store signing files
-        script: |
-          set -euo pipefail
-          keychain initialize
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_STORE \
-            --create
-          keychain add-certificates
-          xcode-project use-profiles --project "$CM_BUILD_DIR/BlockMir.xcodeproj" --archive-method app-store
+      - name: Set up code signing settings on Xcode project
+        script: xcode-project use-profiles --project BlockMir.xcodeproj --archive-method app-store
       - name: Build ipa for distribution
         script: |
           set -o pipefail
