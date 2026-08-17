@@ -240,3 +240,31 @@ window.BlockMirI18n = {
       firstPlayHint:'Quick start — play one round! Guide is in Settings.'
     }
 };
+Object.assign(window.BlockMirI18n.tr, {
+  scoreAdventureMaster:'MACERA USTA', masterTag:'USTA', masterLevelClear:'USTA SEVİYE!', masterLocked:'Bu dünya için Usta yolu kilitli. 10 seviyeyi 3 yıldızla bitir.',
+  masterToggleNormal:'Normal', masterToggleMaster:'Usta', masterBadge:'USTA', masterNeedStars:'3★',
+  masterRuleHint:'Usta kuralı', masterRule_mir:'3 kilitli hücre — yumuşak giriş', masterRule_candy:'Tek parça ailesi',
+  masterRule_night:'Gece görüşü', masterRule_crystal:'5 kilitli hücre', masterRule_ocean:'Ayna yerleştirme',
+  masterRule_volcano:'Küçülen tahta', masterRule_aurora:'Gece + ayna', masterRule_galaxy:'Kilit + tek parça',
+  masterRule_crown:'Geri almadan', masterRule_peak:'Küçülen tahta + gece görüşü',
+  masterWorldDone:'Bu dünyanın Usta yolu tamamlandı!', masterRoad:'Usta Yıldızı',
+  peakTrialBtn:'▲ ZİRVE DENEMESİ', peakTrialLocked:'10 dünyanın Usta yolunu 3 yıldızla bitir.',
+  peakTrialStart:'Zirve Denemesi başladı!', peakTrialNext:'SIRADAKİ DÜNYA', peakTrialTag:'ZİRVE',
+  peakTrialProgress:'Zirve {n}/{total}', peakTrialComplete:'Zirve Denemesi bitti! Unvan: Mir Ustası',
+  peakTrialDoneBadge:'Mir Ustası', mstar_m30_name:'Lüks Altın Salon', mstar_m90_name:'Platin Işık',
+  mstar_m150_name:'Lüks Altın Patlama', mstar_m240_name:'Kadife Gece', mstar_m300_name:'Usta Seti'
+});
+Object.assign(window.BlockMirI18n.en, {
+  scoreAdventureMaster:'ADVENTURE MASTER', masterTag:'MASTER', masterLevelClear:'MASTER CLEAR!', masterLocked:'Master path locked. 3-star all 10 levels in this world.',
+  masterToggleNormal:'Normal', masterToggleMaster:'Master', masterBadge:'MASTER', masterNeedStars:'3★',
+  masterRuleHint:'Master rule', masterRule_mir:'3 locked cells — gentle start', masterRule_candy:'Single piece family',
+  masterRule_night:'Night vision', masterRule_crystal:'5 locked cells', masterRule_ocean:'Mirror placement',
+  masterRule_volcano:'Shrinking board', masterRule_aurora:'Night + mirror', masterRule_galaxy:'Locks + single piece',
+  masterRule_crown:'No undo', masterRule_peak:'Shrink + night vision',
+  masterWorldDone:'This world\'s Master path is complete!', masterRoad:'Master Stars',
+  peakTrialBtn:'▲ SUMMIT TRIAL', peakTrialLocked:'3-star every Master world first.',
+  peakTrialStart:'Summit Trial started!', peakTrialNext:'NEXT WORLD', peakTrialTag:'SUMMIT',
+  peakTrialProgress:'Summit {n}/{total}', peakTrialComplete:'Summit Trial complete! Title: Mir Master',
+  peakTrialDoneBadge:'Mir Master', mstar_m30_name:'Gold Luxury Salon', mstar_m90_name:'Platinum Light',
+  mstar_m150_name:'Luxury Gold Burst', mstar_m240_name:'Velvet Night', mstar_m300_name:'Master Set'
+});

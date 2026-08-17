@@ -3,18 +3,31 @@
   const screens = ['screenMenu','screenClassic','screenGame','screenAdventure','screenCustomize','screenDaily','screenAchievements','screenStats','screenSettings'];
   const LS = 'blockmir_save_';
   const RUN_KEY = LS + 'activeRun';
-  const APP_VERSION = '1.4';
+  const APP_VERSION = '1.7';
   const DEBUG_UNLOCK_ALL = false;
   const TUTORIAL_VERSION = 11;
   const ADVENTURE_MAX_LEVEL = 100;
   const ADVENTURE_WORLD_SIZE = 10;
+  const MASTER_SPECS = [
+    {id:'mir', mods:['lockboard'], lockCount:3, icon:'🔒'},
+    {id:'candy', mods:['single'], icon:'🧩'},
+    {id:'night', mods:['night'], icon:'🌙'},
+    {id:'crystal', mods:['lockboard'], lockCount:5, icon:'🔒'},
+    {id:'ocean', mods:['mirror'], icon:'🪞'},
+    {id:'volcano', mods:['shrink'], icon:'📐'},
+    {id:'aurora', mods:['night','mirror'], icon:'🌓'},
+    {id:'galaxy', mods:['lockboard','single'], lockCount:5, icon:'🪐'},
+    {id:'crown', mods:['noUndo'], icon:'👑'},
+    {id:'peak', mods:['shrink','night'], icon:'✨'}
+  ];
+  const PEAK_TRIAL_LEVELS = [10,20,30,40,50,60,70,80,90,100];
     const I18N = window.BlockMirI18n;
   const SUPPORTED_LANGS = (I18N.LANGS || [{id:'tr'},{id:'en'}]).map(l => l.id);
   function langMeta(id){ return (I18N.LANGS || []).find(l => l.id === id) || {id:'tr',flag:'🇹🇷',native:'Türkçe',rtl:false}; }
   function isTurkish(){ return data.lang === 'tr'; }
   function usesEnglishCatalog(){ return !isTurkish(); }
   const BD = window.BlockMirDaily;
-  const { colors, shapes, themes, blockSkins, boosters, effects, adventureWorlds, starRewards, MARKET_SET_NAMES, EN_BY_ID } = window.BlockMirCatalog;
+  const { colors, shapes, themes, blockSkins, boosters, effects, adventureWorlds, starRewards, masterStarRewards, MARKET_SET_NAMES, EN_BY_ID } = window.BlockMirCatalog;
   const LEGACY_LS = ['blockmir_st5_','blockmir_st6_','blockmir_st4_','blockmir_st3_','blockmir_st2_','blockmir_st1_','blockmir_'];
   function readStore(key, fallback=''){
     const fresh = localStorage.getItem(LS + key);
@@ -66,6 +79,11 @@
     xp:readNumber('xp',0),
     levelRewards: readJson('levelRewards','{}'),
     starRewards: readJson('starRewards','{}'),
+    advMasterStars: readJson('advMasterStars','{}'),
+    advMasterTimes: readJson('advMasterTimes','{}'),
+    masterRewards: readJson('masterRewards','{}'),
+    peakTrialDone: readStore('peakTrialDone','0')==='1',
+    masterTitle: readStore('masterTitle','')||'',
     claimed: readJson('claimed','{}'),
     tutorial: readStore('tutorial','0')==='1',
     tutorialVersion: readNumber('tutorialVersion', 0),
@@ -319,7 +337,8 @@
   function updateLanguageFlags(){ renderLanguagePicker(); }
   function syncGameOverContinueLabel(){
     const btn=$('continueBtn'); if(!btn) return;
-    if(mode==='adventure') btn.textContent=tx('gameOverContinueMap');
+    if(mode==='adventure' && peakTrialActive && peakTrialAdvanceOnContinue) btn.textContent=tx('peakTrialNext');
+    else if(mode==='adventure') btn.textContent=tx('gameOverContinueMap');
     else if(mode==='daily') btn.textContent=tx('gameOverContinueDaily');
     else btn.textContent=tx('gameOverContinueOk');
     syncReviveButton();
@@ -328,13 +347,13 @@
   function reviveCost(){ return Math.min(600, reviveBaseCost()+Math.floor(score/400)*40); }
   function canOfferCoinRevive(){ return !reviveUsed && ['classic8','classic10'].includes(mode); }
   function boardFillRatio(){
-    const ps=(mode==='daily'&&dailyModActive('shrink'))?(dailyPlayableSize||8):boardSize;
+    const ps=(dailyModActive('shrink'))?(dailyPlayableSize||8):boardSize;
     let filled=0;
     for(let y=0;y<ps;y++) for(let x=0;x<ps;x++) if(grid[y][x]) filled++;
     return ps*ps ? filled/(ps*ps) : 0;
   }
   function applyReviveBonusClear(){
-    const ps=(mode==='daily'&&dailyModActive('shrink'))?(dailyPlayableSize||8):boardSize;
+    const ps=(dailyModActive('shrink'))?(dailyPlayableSize||8):boardSize;
     let bestRow=-1, bestRowCount=0, bestCol=-1, bestColCount=0;
     for(let y=0;y<ps;y++){
       let c=0; for(let x=0;x<ps;x++) if(grid[y][x]) c++;
@@ -552,7 +571,7 @@
   function syncColorblindUI(){
     syncToggleCard('colorblindToggleBtn','colorblindCard',data.colorblind);
   }
-  let grid, pieces, score, mode='classic8', target=0, linesDone=0, combo=0, chainReady=false, dragging=null, undoSnap=null, busy=false, recordNotified=false, boardSize=8, currentAdventureLevel=1, selectedAdventureLevel=1, selectedAdventureWorldIdx=null, adventureScrollPin=false, levelMoves=0, levelBestCombo=0, levelChainCurrent=0, levelChainPeak=0, levelBurstPeak=0, adventureUndoUsed=false, levelStartTime=0, adventureTimer=null, dailyModId='', dailyLocks=null, dailyShrinkMargin=0, dailyPlayableSize=8, dailyMovesSinceClear=0, dailySingleShape=null, dailySingleFamilyKey='', dailySingleFamilyShapes=null, dailyBlitzEnd=0, dailyBlitzTimer=null, dailyHubTab='reward', dailyChestOpening=false, dailyNightPreviewCells=null, reviveUsed=false, gameOverPending=false, blitzExpiredPending=false, lastClearResult={rows:[],cols:[],n:0,burst:false}, gamePaused=false, pauseStartedAt=0, restartConfirmFromPause=false;
+  let grid, pieces, score, mode='classic8', target=0, linesDone=0, combo=0, chainReady=false, dragging=null, undoSnap=null, busy=false, recordNotified=false, boardSize=8, currentAdventureLevel=1, selectedAdventureLevel=1, selectedAdventureWorldIdx=null, adventureScrollPin=false, adventureMasterView=false, adventureMasterActive=false, peakTrialActive=false, peakTrialStep=0, peakTrialAdvanceOnContinue=false, levelMoves=0, levelBestCombo=0, levelChainCurrent=0, levelChainPeak=0, levelBurstPeak=0, adventureUndoUsed=false, levelStartTime=0, adventureTimer=null, dailyModId='', dailyLocks=null, dailyShrinkMargin=0, dailyPlayableSize=8, dailyMovesSinceClear=0, dailySingleShape=null, dailySingleFamilyKey='', dailySingleFamilyShapes=null, dailyBlitzEnd=0, dailyBlitzTimer=null, dailyHubTab='reward', dailyChestOpening=false, dailyNightPreviewCells=null, reviveUsed=false, gameOverPending=false, blitzExpiredPending=false, lastClearResult={rows:[],cols:[],n:0,burst:false}, gamePaused=false, pauseStartedAt=0, restartConfirmFromPause=false;
   const boardEl = $('board'), trayEl = $('pieceTray'), dragLayer = $('dragLayer');
   let photoQuotaWarned=false;
   let previewEls=[], boardCellEls=[], boardMetricsCache=null;
@@ -716,7 +735,7 @@
       const steps=goalSteps(levelGoal(currentAdventureLevel||1)).length;
       base += steps>=2 ? 76 : 58;
     }
-    if(mode==='daily' && !v.landscape){
+    if((mode==='daily' || (mode==='adventure' && adventureMasterActive)) && !v.landscape){
       base += 14;
       const timerEl=$('adventureTimerStrip');
       if(dailyModActive('blitz') && timerEl && !timerEl.classList.contains('hidden')) base += 58;
@@ -1128,6 +1147,42 @@
     });
     return gained;
   }
+  function masterRewardLabel(r){
+    const key=`mstar_${r.id}_name`;
+    const t=tx(key);
+    if(t!==key) return t;
+    return isTurkish() ? r.name : (r.nameEn||r.name);
+  }
+  function applyMasterStarRewards(){
+    const list=masterStarRewards||[];
+    const total=totalMasterStars(), gained=[];
+    list.forEach(r=>{
+      if(total<r.stars || data.masterRewards[r.id]) return;
+      data.masterRewards[r.id]=true;
+      if(r.coins) data.coins+=r.coins;
+      if(r.hints) data.hints+=r.hints;
+      if(r.undos) data.undos+=r.undos;
+      if(r.type && r.item) grantMarketItem(r.type,r.item);
+      (r.bundle||[]).forEach(([type,id])=>grantMarketItem(type,id));
+      gained.push(masterRewardLabel(r));
+    });
+    return gained;
+  }
+  function nextMasterReward(){
+    const list=masterStarRewards||[];
+    const total=totalMasterStars();
+    return list.find(r=>total<r.stars || !data.masterRewards[r.id]);
+  }
+  function completePeakTrial(){
+    if(!data.peakTrialDone){
+      data.peakTrialDone=true;
+      data.masterTitle='mirMaster';
+      data.coins+=2000;
+    }
+    peakTrialActive=false;
+    peakTrialStep=0;
+    save(true);
+  }
   function nextStarReward(){
     const total=totalAdventureStars();
     return starRewards.find(r=>total<r.stars || !data.starRewards[r.id]);
@@ -1165,13 +1220,53 @@
     return mode==='classic10' ? data.best10 : data.best8;
   }
   function dailyModeCfg(){ return (BD&&BD.getMode(dailyModId)) || (BD&&BD.todayMode()) || {id:'blitz'}; }
-  function dailyModActive(flag){ return BD&&BD.modeHas(dailyModeCfg(), flag); }
+  function masterSpecAt(lvl=currentAdventureLevel){
+    return MASTER_SPECS[adventureWorldIndexForLevel(lvl)] || MASTER_SPECS[0];
+  }
+  function masterHas(flag, lvl=currentAdventureLevel){
+    const spec=masterSpecAt(lvl);
+    return !!(spec && spec.mods && spec.mods.includes(flag));
+  }
+  function worldRange(idx){
+    const min=idx*ADVENTURE_WORLD_SIZE+1;
+    const max=Math.min(ADVENTURE_MAX_LEVEL,(idx+1)*ADVENTURE_WORLD_SIZE);
+    return {min,max};
+  }
+  function worldAllThreeStarred(idx){
+    const {min,max}=worldRange(idx);
+    for(let i=min;i<=max;i++) if((data.advStars[i]||0)<3) return false;
+    return true;
+  }
+  function worldMasterUnlocked(idx){
+    return worldAllThreeStarred(idx);
+  }
+  function worldMasterStars(idx){
+    const {min,max}=worldRange(idx);
+    let n=0;
+    for(let i=min;i<=max;i++) n+=(data.advMasterStars[i]||0);
+    return n;
+  }
+  function totalMasterStars(){
+    return Object.entries(data.advMasterStars||{}).reduce((sum,[lvl,stars])=>{
+      const n=+lvl;
+      return n>=1 && n<=ADVENTURE_MAX_LEVEL ? sum+(+stars||0) : sum;
+    },0);
+  }
+  function allWorldsMastered(){
+    return MASTER_SPECS.every((_,idx)=>worldMasterStars(idx)>=ADVENTURE_WORLD_SIZE*3);
+  }
+  function peakTrialUnlocked(){
+    return allWorldsMastered();
+  }
+  function dailyModActive(flag){
+    if(mode==='daily') return !!(BD&&BD.modeHas(dailyModeCfg(), flag));
+    if(mode==='adventure' && adventureMasterActive) return masterHas(flag);
+    return false;
+  }
   function isCellPlayable(x,y){
     if(x<0||y<0||x>=boardSize||y>=boardSize) return false;
-    if(mode==='daily'){
-      if(dailyModActive('shrink') && (x>=dailyPlayableSize||y>=dailyPlayableSize)) return false;
-      if(dailyLocks&&dailyLocks[y]&&dailyLocks[y][x]) return false;
-    }
+    if(dailyModActive('shrink') && (x>=dailyPlayableSize||y>=dailyPlayableSize)) return false;
+    if(dailyLocks&&dailyLocks[y]&&dailyLocks[y][x]) return false;
     return true;
   }
   function boardMirrorCells(shape, px, py){
@@ -1198,13 +1293,13 @@
     });
   }
   function canPlaceWithMirror(piece, px, py){
-    const mirror=mode==='daily'&&dailyModActive('mirror');
+    const mirror=dailyModActive('mirror');
     if(!canPlace(piece,px,py)) return false;
     if(!mirror) return true;
     return canPlaceCells(boardMirrorCells(piece.shape,px,py));
   }
   function dailyPlayableBounds(){
-    if(mode==='daily'&&dailyModActive('shrink')) return dailyPlayableSize||8;
+    if(dailyModActive('shrink')) return dailyPlayableSize||8;
     return boardSize;
   }
   function nightVisibleSet(extraCells){
@@ -1233,7 +1328,7 @@
   }
   function updateNightBeam(clientX, clientY, active){
     const shell=document.querySelector('.board-shell');
-    if(!shell||mode!=='daily'||!dailyModActive('night')) return;
+    if(!shell||!dailyModActive('night')) return;
     if(!active){ shell.style.setProperty('--night-beam-o','0'); return; }
     const r=shell.getBoundingClientRect();
     const x=Math.max(0,Math.min(100,((clientX-r.left)/r.width)*100));
@@ -1257,29 +1352,32 @@
     return (dailyPlayableSize||8) > DAILY_SHRINK_MIN;
   }
   function dailyShrinkEvery(){
-    if(mode!=='daily'||!dailyModActive('shrink')) return BD?.SHRINK_EVERY||8;
+    if(!dailyModActive('shrink')) return BD?.SHRINK_EVERY||8;
     if(!dailyCanShrinkMore()) return 99;
     return dailyPlayableSize||boardSize;
   }
   function shapeFitsDailyShrink(shape){
-    if(mode!=='daily'||!dailyModActive('shrink')) return true;
+    if(!dailyModActive('shrink')) return true;
     const ps=dailyPlayableSize||8;
     const {w,h}=bounds(shape);
     return shape.length<=dailyMaxPieceCells() && w<=ps && h<=ps;
   }
   function initDailyLocks(){
     dailyLocks=null;
-    if(mode!=='daily'||!dailyModActive('lockboard')) return;
+    if(!dailyModActive('lockboard')) return;
+    const need=(mode==='adventure' && adventureMasterActive)
+      ? (masterSpecAt().lockCount || BD.LOCK_COUNT)
+      : BD.LOCK_COUNT;
     dailyLocks=Array.from({length:boardSize},()=>Array(boardSize).fill(false));
     const seeds=[[1,1],[6,1],[1,6],[6,6],[3,4],[4,3]];
     let placed=0;
     for(const [x,y] of seeds){
-      if(placed>=BD.LOCK_COUNT) break;
+      if(placed>=need) break;
       if(!dailyLocks[y][x]){ dailyLocks[y][x]=true; placed++; }
     }
     let guard=0;
-    let rng=daySeed(dayKey()+'lock')>>>0;
-    while(placed<BD.LOCK_COUNT&&guard++<80){
+    let rng=daySeed((mode==='adventure'?'masterlock|'+currentAdventureLevel:dayKey()+'lock'))>>>0;
+    while(placed<need&&guard++<80){
       rng=(rng*1103515245+12345)>>>0;
       const x=1+Math.floor((rng/4294967296)*6);
       rng=(rng*1103515245+12345)>>>0;
@@ -1424,7 +1522,7 @@
   function hideDailyShrinkStrip(){ const el=$('dailyShrinkStrip'); if(el) el.classList.add('hidden'); syncViewportLayout(); }
   function renderDailyShrinkGauge(){
     const el=$('dailyShrinkStrip');
-    if(mode!=='daily'||!dailyModActive('shrink')) return hideDailyShrinkStrip();
+    if(!dailyModActive('shrink')) return hideDailyShrinkStrip();
     if(el) el.classList.remove('hidden');
     const max=dailyShrinkEvery();
     const cur=dailyCanShrinkMore()?Math.min(max, dailyMovesSinceClear||0):0;
@@ -1477,19 +1575,19 @@
     return clearLines();
   }
   function syncDailyModeFx(){
-    const night=mode==='daily'&&dailyModActive('night');
+    const night=dailyModActive('night');
     document.body.classList.toggle('daily-night-active', !!night);
     if($('screenGame')) $('screenGame').classList.toggle('daily-night-game', !!night);
     const fog=$('nightFogVeil');
     if(fog) fog.classList.toggle('hidden', !night);
     const shell=document.querySelector('.board-shell');
     if(shell && !night) shell.style.removeProperty('--night-beam-o');
-    if(mode==='daily'&&dailyModActive('shrink')) renderDailyShrinkGauge();
+    if(dailyModActive('shrink')) renderDailyShrinkGauge();
     else hideDailyShrinkStrip();
     if(night) requestAnimationFrame(refreshNightFog);
   }
   function enforceDailyPieceLimits(){
-    if(mode!=='daily') return;
+    if(mode!=='daily' && !(mode==='adventure' && adventureMasterActive)) return;
     pieces.forEach((p,i)=>{
       if(!p||p.used) return;
       if(dailyModActive('shrink') && !shapeFitsDailyShrink(p.shape)) pieces[i]=newPiece();
@@ -1517,7 +1615,7 @@
     syncDailyModeFx();
   }
   function renderDailyBlitzTimer(){
-    if(mode!=='daily'||!dailyModActive('blitz')||!dailyBlitzEnd) return hideAdventureTimer();
+    if(!dailyModActive('blitz')||!dailyBlitzEnd) return hideAdventureTimer();
     const total=BD.BLITZ_SEC;
     const left=Math.max(0,Math.ceil((dailyBlitzEnd-Date.now())/1000));
     const elapsed=Math.min(total,total-left);
@@ -1564,6 +1662,10 @@
     save(true);
     renderMenuStreak();
     mode='daily';
+    adventureMasterActive=false;
+    peakTrialActive=false;
+    peakTrialStep=0;
+    peakTrialAdvanceOnContinue=false;
     dailyModId=modId;
     boardSize=8;
     dailyShrinkMargin=0;
@@ -1604,7 +1706,7 @@
     data.best = maxClassicBest();
     const entries=[
       ['best',data.best],['best8',data.best8],['best10',data.best10],
-      ['coins',data.coins],['adventure',data.adventureMax],['adventureMax',data.adventureMax],['advStars',JSON.stringify(data.advStars)],['advTimes',JSON.stringify(data.advTimes)],
+      ['coins',data.coins],['adventure',data.adventureMax],['adventureMax',data.adventureMax],['advStars',JSON.stringify(data.advStars)],['advTimes',JSON.stringify(data.advTimes)],['advMasterStars',JSON.stringify(data.advMasterStars||{})],['advMasterTimes',JSON.stringify(data.advMasterTimes||{})],['masterRewards',JSON.stringify(data.masterRewards||{})],['peakTrialDone',data.peakTrialDone?'1':'0'],['masterTitle',data.masterTitle||''],
       ['theme',data.theme],['skin',data.skin],['effect',data.effect],['owned',JSON.stringify(data.owned)],
       ['photo',data.customPhoto],['blur',data.blur],['dark',data.dark],
       ['hints',data.hints],['undos',data.undos],['daily',data.daily],
@@ -1687,13 +1789,13 @@
       const delta=Math.max(0, Date.now()-pauseStartedAt);
       if(delta>0){
         if(mode==='adventure' && levelStartTime) levelStartTime+=delta;
-        if(mode==='daily' && dailyModActive('blitz') && dailyBlitzEnd) dailyBlitzEnd+=delta;
+        if(dailyModActive('blitz') && dailyBlitzEnd) dailyBlitzEnd+=delta;
       }
       gamePaused=false;
       pauseStartedAt=0;
       if(gameScreenActive()){
         if(mode==='adventure') startAdventureTimer();
-        else if(mode==='daily' && dailyModActive('blitz')) startDailyBlitzTimer();
+        else if(dailyModActive('blitz')) startDailyBlitzTimer();
         startFpsSampling();
       }
       return;
@@ -1774,14 +1876,14 @@
     const delta=Math.max(0, Date.now()-pauseStartedAt);
     if(delta>0){
       if(mode==='adventure' && levelStartTime) levelStartTime+=delta;
-      if(mode==='daily' && dailyModActive('blitz') && dailyBlitzEnd) dailyBlitzEnd+=delta;
+      if(dailyModActive('blitz') && dailyBlitzEnd) dailyBlitzEnd+=delta;
     }
     gamePaused=false;
     pauseStartedAt=0;
     document.body.classList.remove('game-paused');
     if(gameScreenActive()){
       if(mode==='adventure') startAdventureTimer();
-      else if(mode==='daily' && dailyModActive('blitz')) startDailyBlitzTimer();
+      else if(dailyModActive('blitz')) startDailyBlitzTimer();
       startFpsSampling();
     }
   }
@@ -1864,11 +1966,11 @@
   function rnd(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
   function newPiece(){
     let shape;
-    if(mode==='daily' && dailyModActive('single') && dailySingleFamilyShapes && dailySingleFamilyShapes.length){
+    if(dailyModActive('single') && dailySingleFamilyShapes && dailySingleFamilyShapes.length){
       const pick=rnd(dailySingleFamilyShapes);
       shape=pick.map(p=>[p[0],p[1]]);
     } else {
-      const maxC=(mode==='daily'&&dailyModActive('shrink'))?dailyMaxPieceCells():99;
+      const maxC=(dailyModActive('shrink'))?dailyMaxPieceCells():99;
       let tries=0;
       do{
         shape=rnd(shapes).map(p=>[p[0],p[1]]);
@@ -1906,7 +2008,7 @@
     btn.classList.toggle('hidden', !s);
     if(s && $('resumeSmall')){
       const label=s.mode==='tutorial' ? tx('howTo')
-        : s.mode==='adventure' ? `${tx('scoreAdventure')} ${s.currentAdventureLevel||1}`
+        : s.mode==='adventure' ? `${s.adventureMasterActive?tx('scoreAdventureMaster'):tx('scoreAdventure')} ${s.currentAdventureLevel||1}`
         : s.mode==='daily' ? dailyModeName(s.dailyModId||'')
         : (s.mode==='classic10'?'10x10':'8x8');
       $('resumeSmall').textContent=`${label} • ${s.score||0} ${tx('score')}`;
@@ -1936,12 +2038,15 @@
       recordNotified, currentAdventureLevel, levelMoves, levelBestCombo, levelChainPeak, levelChainCurrent, levelBurstPeak, adventureUndoUsed,
       elapsed: levelStartTime ? Math.max(0, Date.now()-levelStartTime) : 0,
       dailyModId: mode==='daily' ? dailyModId : '',
-      dailyLocks: mode==='daily' && dailyLocks ? dailyLocks.map(r=>r.slice()) : null,
-      dailyShrinkMargin: mode==='daily' ? dailyShrinkMargin : 0,
-      dailyPlayableSize: mode==='daily' ? dailyPlayableSize : 8,
-      dailyMovesSinceClear: mode==='daily' ? dailyMovesSinceClear : 0,
-      dailySingleFamilyKey: mode==='daily' ? dailySingleFamilyKey : '',
-      dailyBlitzRemainingMs: mode==='daily' && dailyModActive('blitz') && dailyBlitzEnd ? Math.max(0, dailyBlitzEnd-Date.now()) : 0,
+      adventureMasterActive: mode==='adventure' && adventureMasterActive,
+      peakTrialActive: mode==='adventure' && peakTrialActive,
+      peakTrialStep: peakTrialActive ? peakTrialStep : 0,
+      dailyLocks: (mode==='daily' || (mode==='adventure' && adventureMasterActive)) && dailyLocks ? dailyLocks.map(r=>r.slice()) : null,
+      dailyShrinkMargin: (mode==='daily' || (mode==='adventure' && adventureMasterActive)) ? dailyShrinkMargin : 0,
+      dailyPlayableSize: (mode==='daily' || (mode==='adventure' && adventureMasterActive)) ? dailyPlayableSize : 8,
+      dailyMovesSinceClear: (mode==='daily' || (mode==='adventure' && adventureMasterActive)) ? dailyMovesSinceClear : 0,
+      dailySingleFamilyKey: (mode==='daily' || (mode==='adventure' && adventureMasterActive)) ? dailySingleFamilyKey : '',
+      dailyBlitzRemainingMs: dailyModActive('blitz') && dailyBlitzEnd ? Math.max(0, dailyBlitzEnd-Date.now()) : 0,
       savedAt: Date.now()
     };
     try{ localStorage.setItem(RUN_KEY, JSON.stringify(state)); updateResumeButton(); }
@@ -1954,11 +2059,12 @@
     if(mode==='adventure'){
       const goal=levelGoal(currentAdventureLevel);
       target=goal.target;
-      $('modeLabel').textContent=tx('scoreAdventure')+' '+currentAdventureLevel;
+      $('modeLabel').textContent=(adventureMasterActive?tx('scoreAdventureMaster'):tx('scoreAdventure'))+' '+currentAdventureLevel;
       $('targetText').textContent='';
       const stepCount=goalSteps(goal).length;
       if($('screenGame')){
         $('screenGame').classList.toggle('adventure-active', true);
+        $('screenGame').classList.toggle('adventure-master', !!adventureMasterActive);
         $('screenGame').classList.toggle('adv-hud-dense', stepCount>=2);
       }
     } else if(mode==='daily'){
@@ -1974,12 +2080,12 @@
       const gt=document.querySelector('.game-top');
       if(gt) gt.classList.add('daily-hud');
       applyTheme();
-      if($('screenGame')) $('screenGame').classList.remove('adventure-active','adv-hud-dense');
+      if($('screenGame')) $('screenGame').classList.remove('adventure-active','adventure-master','adv-hud-dense');
     } else if(mode==='tutorial'){
       target=0;
       const badge=$('dailyModeBadge'); if(badge) badge.classList.add('hidden');
       if($('scoreCard')) $('scoreCard').classList.remove('daily-active');
-      const gs=$('screenGame'); if(gs) gs.classList.remove('daily-mode-active','adventure-active','adv-hud-dense');
+      const gs=$('screenGame'); if(gs) gs.classList.remove('daily-mode-active','adventure-active','adventure-master','adv-hud-dense');
       const gt=document.querySelector('.game-top'); if(gt) gt.classList.remove('daily-hud');
       $('modeLabel').textContent=tx('howTo');
       $('targetText').textContent='';
@@ -1992,7 +2098,7 @@
       target=0;
       $('modeLabel').textContent=tx('scoreClassic')+(mode==='classic10'?' 10x10':' 8x8');
       $('targetText').textContent=currentBestLabel()+': '+currentBest();
-      if($('screenGame')){ $('screenGame').classList.remove('adventure-active','adv-hud-dense'); }
+      if($('screenGame')){ $('screenGame').classList.remove('adventure-active','adventure-master','adv-hud-dense'); }
     }
   }
   function resumeSavedRun(){
@@ -2037,21 +2143,32 @@
     dailyModId=''; dailyLocks=null; dailyShrinkMargin=0; dailyPlayableSize=8; dailyMovesSinceClear=0;
     dailySingleFamilyKey=''; dailySingleShape=null; dailySingleFamilyShapes=null; dailyNightPreviewCells=null;
     dailyBlitzEnd=0; stopDailyBlitzTimer();
-    if(s.mode==='daily'){
+    adventureMasterActive=!!(s.mode==='adventure' && s.adventureMasterActive);
+    peakTrialActive=!!(s.mode==='adventure' && s.peakTrialActive);
+    peakTrialStep=peakTrialActive ? Math.max(0, Math.min(PEAK_TRIAL_LEVELS.length-1, +s.peakTrialStep||0)) : 0;
+    if(s.mode==='daily' || adventureMasterActive){
       dailyModId=s.dailyModId||'';
       dailyLocks=s.dailyLocks ? s.dailyLocks.map(r=>r.slice()) : null;
       dailyShrinkMargin=+s.dailyShrinkMargin||0;
       dailyPlayableSize=+s.dailyPlayableSize||8;
       dailyMovesSinceClear=+s.dailyMovesSinceClear||0;
       dailySingleFamilyKey=s.dailySingleFamilyKey||'';
-      const singlePick=BD.pickSingleFamily(daySeed(dayKey()+dailyModId));
-      dailySingleFamilyShapes=(BD.SINGLE_FAMILIES[singlePick.key]||[]).map(v=>v.map(p=>[p[0],p[1]]));
-      dailySingleShape=singlePick.shape;
-      document.body.dataset.dailyMod=dailyModId;
+      if(s.mode==='daily'){
+        const singlePick=BD.pickSingleFamily(daySeed(dayKey()+dailyModId));
+        dailySingleFamilyShapes=(BD.SINGLE_FAMILIES[singlePick.key]||[]).map(v=>v.map(p=>[p[0],p[1]]));
+        dailySingleShape=singlePick.shape;
+        document.body.dataset.dailyMod=dailyModId;
+      } else {
+        setupMasterRuntime(currentAdventureLevel, true);
+        if(s.dailyLocks) dailyLocks=s.dailyLocks.map(r=>r.slice());
+        dailyShrinkMargin=+s.dailyShrinkMargin||0;
+        dailyPlayableSize=+s.dailyPlayableSize||8;
+        dailyMovesSinceClear=+s.dailyMovesSinceClear||0;
+      }
     } else delete document.body.dataset.dailyMod;
     updatePerfMode();
     applyModeLabels(); show('screenGame'); renderAll();
-    if(mode==='adventure') startAdventureTimer();
+    if(mode==='adventure'){ startAdventureTimer(); if(adventureMasterActive) syncDailyModeFx(); }
     else if(mode==='daily'){
       if(dailyModActive('blitz') && (+s.dailyBlitzRemainingMs||0)>0){
         dailyBlitzEnd=Date.now()+s.dailyBlitzRemainingMs;
@@ -2060,27 +2177,71 @@
       syncDailyModeFx();
     } else hideAdventureTimer();
     if(!hasMove()){ clearRunState(); show('screenMenu'); return toast(tx('gameOverNoMoves')); }
-    if(mode==='daily'&&dailyModActive('blitz')&&!(+s.dailyBlitzRemainingMs>0)){ gameOver(); return; }
+    if(dailyModActive('blitz')&&!(+s.dailyBlitzRemainingMs>0)){ gameOver(); return; }
     toast(tx('resumed'));
+  }
+  function setupMasterRuntime(lvl, keepBoard=false){
+    adventureMasterActive=true;
+    const spec=masterSpecAt(lvl);
+    const seed=daySeed('master|'+lvl+'|'+(data.chestSalt||''));
+    if(spec.mods.includes('single')){
+      const pick=BD.pickSingleFamily(seed);
+      dailySingleFamilyKey=pick.key;
+      dailySingleFamilyShapes=(BD.SINGLE_FAMILIES[pick.key]||[]).map(v=>v.map(p=>[p[0],p[1]]));
+      dailySingleShape=pick.shape;
+    }
+    document.body.dataset.dailyMod='master-'+(spec.mods.join('-')||spec.id);
+    if(!keepBoard){
+      dailyShrinkMargin=0;
+      dailyPlayableSize=8;
+      dailyMovesSinceClear=0;
+    }
   }
   function startGame(m='classic8', lvl=null){
     const nextMode=m==='classic'?'classic8':m;
+    const keepMaster=nextMode==='adventure' && (adventureMasterView || adventureMasterActive || peakTrialActive);
+    const keepPeak=nextMode==='adventure' && peakTrialActive;
     clearRunState();
     mode=nextMode;
+    adventureMasterActive=false;
+    if(!keepPeak){ peakTrialActive=false; peakTrialStep=0; }
     if(mode!=='daily') resetDailyRuntimeState();
     boardSize = mode==='classic10' ? 10 : 8;
-    if(mode==='adventure'){ boardSize=8; currentAdventureLevel = Math.max(1, Math.min(ADVENTURE_MAX_LEVEL, lvl || data.adventureMax)); selectedAdventureLevel=currentAdventureLevel; }
+    if(mode==='adventure'){
+      boardSize=8;
+      currentAdventureLevel = Math.max(1, Math.min(ADVENTURE_MAX_LEVEL, lvl || data.adventureMax));
+      selectedAdventureLevel=currentAdventureLevel;
+      const idx=adventureWorldIndexForLevel(currentAdventureLevel);
+      if(keepMaster && (keepPeak || worldMasterUnlocked(idx))){
+        setupMasterRuntime(currentAdventureLevel);
+      }
+    }
     updatePerfMode();
-    grid=Array.from({length:boardSize},()=>Array(boardSize).fill(null)); pieces=[newPiece(),newPiece(),newPiece()]; score=0; linesDone=0; combo=0; chainReady=false; undoSnap=null; busy=false; recordNotified=false; levelMoves=0; levelBestCombo=0; levelChainCurrent=0; levelChainPeak=0; levelBurstPeak=0; adventureUndoUsed=false; levelStartTime=Date.now(); reviveUsed=false; gameOverPending=false; blitzExpiredPending=false;
+    grid=Array.from({length:boardSize},()=>Array(boardSize).fill(null));
+    initDailyLocks();
+    pieces=[newPiece(),newPiece(),newPiece()]; score=0; linesDone=0; combo=0; chainReady=false; undoSnap=null; busy=false; recordNotified=false; levelMoves=0; levelBestCombo=0; levelChainCurrent=0; levelChainPeak=0; levelBurstPeak=0; adventureUndoUsed=false; levelStartTime=Date.now(); reviveUsed=false; gameOverPending=false; blitzExpiredPending=false;
     applyModeLabels();
-    show('screenGame'); renderAll(); if(mode==='adventure') startAdventureTimer(); else hideAdventureTimer();
+    show('screenGame'); renderAll();
+    if(mode==='adventure') startAdventureTimer(); else hideAdventureTimer();
+    if(adventureMasterActive) syncDailyModeFx();
   }
   function startAdventureLevel(lvl){
     const maxPlayable=Math.min(data.adventureMax,ADVENTURE_MAX_LEVEL);
     lvl = Math.max(1, Math.min(ADVENTURE_MAX_LEVEL, lvl||selectedAdventureLevel||maxPlayable));
-    if(lvl > maxPlayable) return toast(tx('locked').toUpperCase());
-    if(lvl < maxPlayable) toast(tx('advReplayToast', {n: lvl}));
+    if(adventureMasterView){
+      const idx=adventureWorldIndexForLevel(lvl);
+      if(!worldMasterUnlocked(idx) && !peakTrialActive) return toast(tx('masterLocked'));
+    } else if(lvl > maxPlayable) return toast(tx('locked').toUpperCase());
+    if(!adventureMasterView && lvl < maxPlayable) toast(tx('advReplayToast', {n: lvl}));
     startGame('adventure', lvl);
+  }
+  function startPeakTrial(){
+    if(!peakTrialUnlocked()) return toast(tx('peakTrialLocked'));
+    peakTrialActive=true;
+    peakTrialStep=0;
+    adventureMasterView=true;
+    startGame('adventure', PEAK_TRIAL_LEVELS[0]);
+    toast(tx('peakTrialStart'));
   }
   function renderAll(){renderBoard(); renderPieces(); updateScore();}
   function maybeRecord(){
@@ -2158,13 +2319,13 @@
     $('scoreText').textContent=score;
     maybeRecord();
     if($('bestGame')) $('bestGame').textContent=currentBest();
-    if(mode==='adventure'){ $('targetText').textContent=''; renderAdventureTimer(); renderAdventureMissionHud(); syncViewportLayout(); }
+    if(mode==='adventure'){ $('targetText').textContent=''; renderAdventureTimer(); renderAdventureMissionHud(); if(adventureMasterActive) syncDailyModeFx(); syncViewportLayout(); }
     else if(mode==='daily'){ renderDailyBlitzTimer(); renderDailyShrinkGauge(); $('targetText').textContent=tx('bestSuffix')+': '+dailyBestScore(dailyModId); }
     else $('targetText').textContent=currentBestLabel()+': '+currentBest();
   }
   function cellClass(){ const skin=activeSkinId(); return skin==='classic'?'':skin; }
   function refreshNightFog(){
-    if(mode!=='daily'||!dailyModActive('night')||!boardCellEls.length) return;
+    if(!dailyModActive('night')||!boardCellEls.length) return;
     const {lit,beam}=nightVisibleSet(dailyNightPreviewCells);
     boardCellEls.forEach(el=>{
       const x=+el.dataset.x,y=+el.dataset.y;
@@ -2178,7 +2339,7 @@
     boardEl.innerHTML=''; boardEl.dataset.size=boardSize;
     boardEl.style.gridTemplateColumns = `repeat(${boardSize},1fr)`;
     boardEl.style.gridTemplateRows = `repeat(${boardSize},1fr)`;
-    const shrinkMode=mode==='daily'&&dailyModActive('shrink');
+    const shrinkMode=dailyModActive('shrink');
     const playable=shrinkMode?(dailyPlayableSize||8):boardSize;
     boardEl.dataset.playableSize=String(playable);
     const shell=document.querySelector('.board-shell');
@@ -2198,7 +2359,7 @@
         badge.classList.add('hidden');
       }
     }
-    const night = mode==='daily' && dailyModActive('night');
+    const night = dailyModActive('night');
     boardEl.classList.toggle('daily-night-mode', night);
     const nightVis = night ? nightVisibleSet(dailyNightPreviewCells) : null;
     const frag=document.createDocumentFragment();
@@ -2206,7 +2367,7 @@
     const cls=cellClass();
     for(let y=0;y<boardSize;y++) for(let x=0;x<boardSize;x++){
       const c=document.createElement('div'); c.className='cell'; c.dataset.x=x; c.dataset.y=y;
-      if(mode==='daily'&&dailyModActive('lockboard')&&dailyLocks&&dailyLocks[y]&&dailyLocks[y][x]) c.classList.add('daily-lock');
+      if(dailyModActive('lockboard')&&dailyLocks&&dailyLocks[y]&&dailyLocks[y][x]) c.classList.add('daily-lock');
       if(dailyModActive('shrink') && (x>=dailyPlayableSize||y>=dailyPlayableSize)) c.classList.add('daily-shrink-wall');
       if(night){
         const key=`${x},${y}`;
@@ -2269,7 +2430,7 @@
   function canPlace(piece, px, py){return piece.shape.every(([dx,dy])=>{const x=px+dx,y=py+dy; return isCellPlayable(x,y)&&!grid[y][x];});}
   function simulatedClear(piece,px,py){
     const rows=[], cols=[];
-    const mirror=mode==='daily'&&dailyModActive('mirror');
+    const mirror=dailyModActive('mirror');
     const cells=mirror?allPlacementCells(piece.shape,px,py,true):piece.shape.map(([dx,dy])=>[px+dx,py+dy]);
     if(!cells.every(([x,y])=>isCellPlayable(x,y)&&!grid[y][x])) return {rows,cols,count:0};
     const ps=dailyPlayableBounds();
@@ -2293,7 +2454,7 @@
     boardEl.removeAttribute('data-clear-label');
     previewEls.forEach(e=>e.classList.remove('preview-ok','preview-bad','preview-clear','preview-line','preview-mirror','hint-piece'));
     previewEls=[];
-    if(mode==='daily'&&dailyModActive('night')){ dailyNightPreviewCells=null; refreshNightFog(); updateNightBeam(0,0,false); }
+    if(dailyModActive('night')){ dailyNightPreviewCells=null; refreshNightFog(); updateNightBeam(0,0,false); }
   }
   function markPreview(el, cls){
     if(!el) return;
@@ -2303,7 +2464,7 @@
   function preview(piece,px,py,ok){
     clearPreview();
     boardEl.classList.add(ok?'drop-ready':'drop-blocked');
-    const mirror=mode==='daily'&&dailyModActive('mirror');
+    const mirror=dailyModActive('mirror');
     const showLinePreview = ok && !leanPreview();
     const clear = showLinePreview ? simulatedClear(piece,px,py) : {rows:[],cols:[],count:0};
     piece.shape.forEach(([dx,dy])=>{
@@ -2317,7 +2478,7 @@
         if(el){ markPreview(el,mirrorOk?'preview-mirror':'preview-bad'); el.style.setProperty('--previewColor',piece.color); }
       });
     }
-    if(mode==='daily'&&dailyModActive('night')){
+    if(dailyModActive('night')){
       dailyNightPreviewCells=ok?allPlacementCells(piece.shape,px,py,mirror):null;
       refreshNightFog();
     }
@@ -2386,7 +2547,7 @@
       d.previewKey=key;
       preview(d.p,pos.x,pos.y,ok);
     }
-    if(mode==='daily'&&dailyModActive('night')){
+    if(dailyModActive('night')){
       const m=d.metrics||currentBoardMetrics();
       const b=bounds(d.p.shape);
       const cx=m.r.left+m.pad+(pos.x+(b.w-1)/2)*m.step+m.cell/2;
@@ -2460,14 +2621,14 @@
     if(s.dailyPlayableSize!=null) dailyPlayableSize=s.dailyPlayableSize;
     dailyNightPreviewCells=null;
     renderAll();
-    if(mode==='daily'&&dailyModActive('shrink')) renderDailyShrinkGauge();
+    if(dailyModActive('shrink')) renderDailyShrinkGauge();
   }
   async function placePiece(i,p,px,py){
     if(mode==='tutorial') return placeTutorialPiece(i,p,px,py);
     if(gamePaused) return;
     busy=true; playTone('place'); undoSnap=snapshot();
     saveRunState({force:true});
-    const mirror=mode==='daily'&&dailyModActive('mirror');
+    const mirror=dailyModActive('mirror');
     const cells=allPlacementCells(p.shape,px,py,mirror);
     const placedSet=new Set();
     cells.forEach(([x,y])=>{
@@ -2477,7 +2638,7 @@
     const placed=placedSet.size;
     pieces[i]=newPiece();
     data.moves++; levelMoves++; score += placed*10; addXP(2 + placed);
-    if(mode==='daily'&&dailyModActive('shrink')) dailyMovesSinceClear++;
+    if(dailyModActive('shrink')) dailyMovesSinceClear++;
     dailyNightPreviewCells=null;
     renderBoard();
     cells.forEach(([x,y])=>{ const el=cellAt(x,y); if(el) el.classList.add('just-placed'); });
@@ -2485,7 +2646,7 @@
     const settleDelay=perfLow()?0:(perfLite()?45:95);
     if(settleDelay) await wait(settleDelay);
     await clearLines();
-    if(mode==='daily'&&dailyModActive('shrink')){
+    if(dailyModActive('shrink')){
       if(dailyCanShrinkMore() && dailyMovesSinceClear>=dailyShrinkEvery()) await applyDailyShrinkStep();
       else{
         if(!dailyCanShrinkMore() && dailyMovesSinceClear>0) dailyMovesSinceClear=0;
@@ -2540,7 +2701,7 @@
     const {rows,cols}=linesToClear(); const n=rows.length+cols.length;
     lastClearResult={rows,cols,n,burst:rows.length>0&&cols.length>0};
     if(!n){combo=0;chainReady=false; if(mode==='adventure') levelChainCurrent=0; return lastClearResult;}
-    if(mode==='daily'&&dailyModActive('shrink')) dailyMovesSinceClear=0;
+    if(dailyModActive('shrink')) dailyMovesSinceClear=0;
     const continuing=chainReady;
     if(continuing) combo++; else combo=1;
     chainReady=true;
@@ -2820,7 +2981,7 @@
   function findMove(p){
     let best=null;
     for(let y=0;y<boardSize;y++)for(let x=0;x<boardSize;x++){
-      const ok = mode==='daily'&&dailyModActive('mirror') ? canPlaceWithMirror(p,x,y) : canPlace(p,x,y);
+      const ok = dailyModActive('mirror') ? canPlaceWithMirror(p,x,y) : canPlace(p,x,y);
       if(!ok) continue;
       const s=moveScore(p,x,y); if(!best || s>best.score) best={x,y,score:s};
     }
@@ -2985,37 +3146,57 @@
     const reward=goal.reward;
     const elapsed=Math.max(1, Math.floor((Date.now()-levelStartTime)/1000));
     const stars=calcAdventureStars(goal, elapsed);
-    const oldStars=data.advStars[currentAdventureLevel]||0;
-    const oldTime=data.advTimes[currentAdventureLevel]||0;
+    const masterRun=!!adventureMasterActive;
+    const starStore=masterRun ? data.advMasterStars : data.advStars;
+    const timeStore=masterRun ? data.advMasterTimes : data.advTimes;
+    const oldStars=starStore[currentAdventureLevel]||0;
+    const oldTime=timeStore[currentAdventureLevel]||0;
     data.coins+=reward;
-    // En iyi yıldız/saati koru; bu denemenin yıldızı ayrıca sonuç ekranında gösterilir.
     if(stars>oldStars || (stars===oldStars && (!oldTime || elapsed<oldTime))){
-      data.advStars[currentAdventureLevel]=stars;
-      data.advTimes[currentAdventureLevel]=elapsed;
+      starStore[currentAdventureLevel]=stars;
+      timeStore[currentAdventureLevel]=elapsed;
     }else if(!oldTime){
-      data.advTimes[currentAdventureLevel]=elapsed;
+      timeStore[currentAdventureLevel]=elapsed;
     }
-    const wasFrontier=currentAdventureLevel>=data.adventureMax;
+    const wasFrontier=!masterRun && currentAdventureLevel>=data.adventureMax;
     if(wasFrontier && data.adventureMax<ADVENTURE_MAX_LEVEL)data.adventureMax=currentAdventureLevel+1;
     const milestones=[10,25,50,75,100];
     if(wasFrontier && milestones.includes(currentAdventureLevel)){
       setTimeout(()=>toast(`🎉 ${tx('milestoneToast')}: ${currentAdventureLevel}!`), 400);
     }
-    data.adventure=data.adventureMax;
+    if(!masterRun) data.adventure=data.adventureMax;
     selectedAdventureLevel = wasFrontier ? data.adventureMax : currentAdventureLevel;
     data.games++;
-    addXP(50+Math.floor(currentAdventureLevel/4)+stars*12);
-    const starDrops=applyStarRewards();
-    const bestStars=data.advStars[currentAdventureLevel]||stars;
+    addXP(50+Math.floor(currentAdventureLevel/4)+stars*12+(masterRun?20:0));
+    const starDrops=masterRun ? applyMasterStarRewards() : applyStarRewards();
+    const bestStars=starStore[currentAdventureLevel]||stars;
     const currentLine = stars?('★'.repeat(stars)+'☆'.repeat(3-stars)):'☆☆☆';
     const bestLine = bestStars?('★'.repeat(bestStars)+'☆'.repeat(3-bestStars)):'☆☆☆';
     $('screenGameOver').classList.remove('loss-mode');
     $('resultScore').textContent=score;
     const starRewardLine=starDrops.length ? `<br>${tx('advStarReward',{rewards:starDrops.join(', ')})}` : '';
-    const completionLine=currentAdventureLevel>=ADVENTURE_MAX_LEVEL && wasFrontier ? `<br>${tx('adventureComplete')}` : '';
-    const bestExtra=data.advTimes[currentAdventureLevel]?(' • '+formatTime(data.advTimes[currentAdventureLevel])):'';
-    $('rewardLine').innerHTML=`${tx('advLevelComplete',{n:currentAdventureLevel})}<br>${tx('advLevelTry',{stars:currentLine,time:elapsed})}<br>${tx('advLevelBest',{stars:bestLine,extra:bestExtra})}<br>+${reward}🪙${stars===0?' • '+tx('advTimerExpired'):''}${starRewardLine}${completionLine}`;
-    $('overTitle').textContent=tx('levelClear');
+    let completionLine='';
+    if(!masterRun && currentAdventureLevel>=ADVENTURE_MAX_LEVEL && wasFrontier) completionLine=`<br>${tx('adventureComplete')}`;
+    if(masterRun){
+      const idx=adventureWorldIndexForLevel(currentAdventureLevel);
+      const after=worldMasterStars(idx);
+      const before=after-stars+oldStars;
+      if(after>=30 && before<30) completionLine+=`<br>${tx('masterWorldDone')}`;
+    }
+    peakTrialAdvanceOnContinue=false;
+    if(peakTrialActive){
+      if(peakTrialStep>=PEAK_TRIAL_LEVELS.length-1){
+        completePeakTrial();
+        completionLine+=`<br>${tx('peakTrialComplete')}`;
+      } else {
+        peakTrialAdvanceOnContinue=true;
+        completionLine+=`<br>${tx('peakTrialProgress',{n:peakTrialStep+1,total:PEAK_TRIAL_LEVELS.length})}`;
+      }
+    }
+    const bestExtra=timeStore[currentAdventureLevel]?(' • '+formatTime(timeStore[currentAdventureLevel])):'';
+    const titlePrefix=masterRun?(peakTrialAdvanceOnContinue||(peakTrialStep>=PEAK_TRIAL_LEVELS.length-1)?tx('peakTrialTag'):tx('masterTag'))+' ':'';
+    $('rewardLine').innerHTML=`${titlePrefix}${tx('advLevelComplete',{n:currentAdventureLevel})}<br>${tx('advLevelTry',{stars:currentLine,time:elapsed})}<br>${tx('advLevelBest',{stars:bestLine,extra:bestExtra})}<br>+${reward}🪙${stars===0?' • '+tx('advTimerExpired'):''}${starRewardLine}${completionLine}`;
+    $('overTitle').textContent=masterRun?tx('masterLevelClear'):tx('levelClear');
     $('screenGameOver').classList.add('active'); stopFpsSampling();
     refreshCounters();
     syncGameOverContinueLabel();
@@ -3096,7 +3277,15 @@
       ? ['score','burst','lines','chain','moves','mixed','score','lines']
       : ['score','burst','lines','chain','score','moves','mixed','noUndo'];
     const rot=rotPool[(lvl-1)%rotPool.length];
-    const mk=(kind, extra={})=>({kind, worldId:world.id, chapter:world.chapter, reward, target:base, ...extra});
+    const mk=(kind, extra={})=>{
+      const goal={kind, worldId:world.id, chapter:world.chapter, reward, target:base, ...extra};
+      if(adventureMasterActive || adventureMasterView){
+        if(masterHas('noUndo', lvl)) goal.noUndo=true;
+        goal.master=true;
+        goal.reward=Math.round(reward*1.25);
+      }
+      return goal;
+    };
     if(lvl===1) return mk('score', {titleKey:'advGoal_l1_title', descKey:'advGoal_l1_desc', target:Math.floor(base*.55)});
     if(lvl===2) return mk('lines', {titleKey:'advGoal_l2_title', descKey:'advGoal_l2_desc', linesTarget:2, target:Math.floor(base*.5)});
     if(lvl===3) return mk('burst', {titleKey:'advGoal_l3_title', descKey:'advGoal_l3_desc', burstTarget:2, target:Math.floor(base*.52)});
@@ -3260,9 +3449,16 @@
   }
   function renderAdventure(focusMap){
     const pendingStarRewards=applyStarRewards();
-    if(pendingStarRewards.length) save();
+    const pendingMasterRewards=applyMasterStarRewards();
+    if(pendingStarRewards.length || pendingMasterRewards.length) save();
     const maxPlayable=Math.min(data.adventureMax,ADVENTURE_MAX_LEVEL);
-    selectedAdventureLevel = Math.max(1, Math.min(maxPlayable, selectedAdventureLevel || maxPlayable));
+    const worldIdxGuess=selectedAdventureWorldIdx!=null?selectedAdventureWorldIdx:adventureWorldIndexForLevel(selectedAdventureLevel||maxPlayable);
+    if(adventureMasterView && !worldMasterUnlocked(worldIdxGuess)) adventureMasterView=false;
+    const masterView=!!adventureMasterView && worldMasterUnlocked(worldIdxGuess);
+    const worldMinGuess=worldIdxGuess*ADVENTURE_WORLD_SIZE+1;
+    const worldMaxGuess=Math.min(ADVENTURE_MAX_LEVEL,(worldIdxGuess+1)*ADVENTURE_WORLD_SIZE);
+    if(masterView) selectedAdventureLevel = Math.max(worldMinGuess, Math.min(worldMaxGuess, selectedAdventureLevel || worldMinGuess));
+    else selectedAdventureLevel = Math.max(1, Math.min(maxPlayable, selectedAdventureLevel || maxPlayable));
     const lvl=selectedAdventureLevel, goal=levelGoal(lvl), world=adventureWorld(lvl);
     const worldIdx=selectedAdventureWorldIdx!=null?selectedAdventureWorldIdx:adventureWorldIndexForLevel(lvl);
     selectedAdventureWorldIdx=worldIdx;
@@ -3270,43 +3466,67 @@
     const worldMin=worldIdx*ADVENTURE_WORLD_SIZE+1;
     const worldMax=Math.min(ADVENTURE_MAX_LEVEL,(worldIdx+1)*ADVENTURE_WORLD_SIZE);
     applyAdventureScreenTheme(viewWorld);
-    const stars=data.advStars[lvl]||0;
-    const bestTime=data.advTimes[lvl]||0;
+    const starMap=masterView?data.advMasterStars:data.advStars;
+    const timeMap=masterView?data.advMasterTimes:data.advTimes;
+    const stars=starMap[lvl]||0;
+    const bestTime=timeMap[lvl]||0;
     const times=starLimits(goal,lvl);
     const starTotal=totalAdventureStars();
-    if($('advStarTotal')) $('advStarTotal').textContent=starTotal;
+    const masterTotal=totalMasterStars();
+    if($('advStarTotal')) $('advStarTotal').textContent=masterTotal?`${starTotal} • 🥇${masterTotal}`:String(starTotal);
     if($('advLevelHead')) $('advLevelHead').textContent=lvl;
     if($('adv5WorldTitle')) $('adv5WorldTitle').textContent=`${tx('advChapter')} ${viewWorld.chapter} • ${worldField(viewWorld,'name')}`;
     if($('advGridMeta')) $('advGridMeta').textContent=`${worldMin}-${worldMax}`;
-    if($('levelTitle')) $('levelTitle').textContent=`${tx('level')} ${lvl}`;
+    if($('levelTitle')) $('levelTitle').textContent=`${masterView?tx('masterTag')+' ':''}${tx('level')} ${lvl}`;
     if($('adv5MissionType')) $('adv5MissionType').textContent=goalShort(goal);
+    const anyMasterReady=MASTER_SPECS.some((_,i)=>worldMasterUnlocked(i));
+    const toggle=$('advMasterToggle');
+    if(toggle){
+      toggle.classList.toggle('hidden', !anyMasterReady);
+      $('advNormalBtn')?.classList.toggle('active', !masterView);
+      $('advMasterBtn')?.classList.toggle('active', !!masterView);
+      if($('advNormalBtn')) $('advNormalBtn').textContent=tx('masterToggleNormal');
+      if($('advMasterBtn')) $('advMasterBtn').textContent=tx('masterToggleMaster');
+    }
+    const spec=masterSpecAt(lvl);
     const starBest = stars ? `${'★'.repeat(stars)}${'☆'.repeat(3-stars)}${bestTime?' • '+formatTime(bestTime):''}` : tx('noneYet');
-    const steps=goalSteps(goal).map(s=>missionStepHtml(s, goal, false)).join('');
-    const nextReward=nextStarReward();
-    const starRoad=nextReward ? `${starTotal}/${nextReward.stars} ★ • ${starRewardLabel(nextReward)}` : `${starTotal}/300 ★ • ${tx('starRoadDone')}`;
+    const steps=goalSteps(goal).map(step=>missionStepHtml(step, goal, false)).join('');
+    const nextReward=masterView?nextMasterReward():nextStarReward();
+    const roadTotal=masterView?masterTotal:starTotal;
+    const starRoad=nextReward
+      ? `${roadTotal}/${nextReward.stars} ★ • ${(masterView?masterRewardLabel:starRewardLabel)(nextReward)}`
+      : `${roadTotal}/300 ★ • ${tx('starRoadDone')}`;
     const hero=$('adv5Hero');
     if(hero) hero.innerHTML=`
       <div class="adv5-hero-icon">${viewWorld.icon}</div>
       <div class="adv5-hero-copy">
         <small>${worldField(viewWorld,'tagline')}</small>
         <p>${worldField(viewWorld,'lore')}</p>
+        ${masterView?`<p class="adv5-master-rule">${spec.icon||'🥇'} ${tx('masterRuleHint')}: ${tx('masterRule_'+spec.id)}</p>`:''}
+        ${data.masterTitle?`<p class="adv5-master-rule">👑 ${tx('peakTrialDoneBadge')}</p>`:''}
       </div>
-      <div class="adv5-hero-side"><b>${Math.min(10, Math.max(0, Math.min(maxPlayable, worldMax)-worldMin+1))}</b><small>/10</small></div>`;
-    const isReplay=lvl<maxPlayable;
+      <div class="adv5-hero-side"><b>${masterView?worldMasterStars(worldIdx):Math.min(10, Math.max(0, Math.min(maxPlayable, worldMax)-worldMin+1))}</b><small>${masterView?'/30':'/10'}</small></div>`;
+    const isReplay=masterView ? (stars>0) : lvl<maxPlayable;
     const replayHintEl=$('adv5ReplayHint');
     if(replayHintEl){
-      if(isReplay){
+      if(!masterView && isReplay){
         replayHintEl.textContent=tx('replayStarsHint');
         replayHintEl.classList.remove('hidden');
       } else replayHintEl.classList.add('hidden');
     }
     const startBtn=$('startAdventureBtn');
-    startBtn.textContent = (isReplay ? tx('replay') : (lvl===ADVENTURE_MAX_LEVEL?tx('playFinal'):tx('playLevel'))).replace(/^/, '▶ ');
-    startBtn.classList.toggle('replay-mode', isReplay);
+    startBtn.textContent = (masterView ? tx('playLevel') : (isReplay ? tx('replay') : (lvl===ADVENTURE_MAX_LEVEL?tx('playFinal'):tx('playLevel')))).replace(/^/, '▶ ');
+    startBtn.classList.toggle('replay-mode', isReplay && !masterView);
+    const peakBtn=$('peakTrialBtn');
+    if(peakBtn){
+      peakBtn.textContent=tx('peakTrialBtn');
+      peakBtn.classList.toggle('hidden', !peakTrialUnlocked());
+    }
     if($('adv5CoachSlot')) $('adv5CoachSlot').innerHTML=missionCoachBanner(lvl, goal);
     $('levelDesc').innerHTML=`
       <div class="adv5-mission-card adv5-mission-card-compact">
         <div class="adv5-mission-top"><span class="adv5-goal-icon">${goalIcon(goal)}</span><div><b>${goalTitle(goal)}</b><p>${goalDesc(goal)}</p></div></div>
+        ${masterView?`<p class="adv5-master-rule">${spec.icon||'🥇'} ${tx('masterRule_'+spec.id)}</p>`:''}
         <div class="adv5-steps">${steps}</div>
         <div class="adv5-rewards"><span>🪙 ${goal.reward}</span><span>🏆 ${starBest}</span></div>
         <div class="adv5-star-road">⭐ ${starRoad}</div>
@@ -3323,28 +3543,38 @@
       const active=worldIdx===idx;
       const unlocked=maxPlayable>=min;
       const done=maxPlayable>max;
+      const masterReady=worldMasterUnlocked(idx);
       const chip=document.createElement('button');
       chip.type='button';
-      chip.className='adv5-world-chip '+(active?'active ':'')+(done?'done ':'')+(unlocked?'':'locked');
+      chip.className='adv5-world-chip '+(active?'active ':'')+(done?'done ':'')+(unlocked?'':'locked ')+(masterReady?'master-ready ':'')+(masterView&&active?'master-active ':'');
       chip.style.setProperty('--chip-accent', w.accent);
       const doneInWorld=unlocked?Math.max(0, Math.min(ADVENTURE_WORLD_SIZE, maxPlayable-min+1)):0;
       const starsLeft=done?worldStarsMissing(min, max, maxPlayable):0;
-      const statusSmall=done?(starsLeft?'':tx('advWorldDone')):unlocked?`${min}-${max}`:tx('locked');
-      const replayLine=starsLeft>0?`<em class="adv5-replay-stars">${tx('replayStarsCta',{n:starsLeft})}</em>`:'';
-      chip.innerHTML=`<span class="adv5-chip-icon">${w.icon}</span><b>${w.chapter}</b><span>${worldField(w,'name')}</span><small>${statusSmall}</small>${replayLine}<i style="width:${done?100:(unlocked?doneInWorld/ADVENTURE_WORLD_SIZE*100:0)}%"></i>`;
+      const mStars=worldMasterStars(idx);
+      const statusSmall=masterReady?(mStars>=30?tx('advWorldDone'):`🥇 ${mStars}/30`):done?(starsLeft?'':tx('advWorldDone')):unlocked?`${min}-${max}`:tx('locked');
+      const replayLine=(!masterReady && starsLeft>0)?`<em class="adv5-replay-stars">${tx('replayStarsCta',{n:starsLeft})}</em>`:(masterReady&&mStars<30?`<em class="adv5-replay-stars">🥇 ${mStars}/30</em>`:'');
+      const badge=masterReady?`<em class="adv5-master-badge">${tx('masterBadge')}</em>`:'';
+      chip.innerHTML=`<span class="adv5-chip-icon">${w.icon}</span><b>${w.chapter}</b><span>${worldField(w,'name')}</span><small>${statusSmall}</small>${badge}${replayLine}<i style="width:${masterReady?(mStars/30*100):(done?100:(unlocked?doneInWorld/ADVENTURE_WORLD_SIZE*100:0))}%"></i>`;
       chip.onclick=()=>{
         if(!unlocked) return toast(tx('locked').toUpperCase());
         selectedAdventureWorldIdx=idx;
+        if(adventureMasterView && !worldMasterUnlocked(idx)){
+          adventureMasterView=false;
+          toast(tx('masterLocked'));
+        }
         selectedAdventureLevel=Math.min(maxPlayable, active?lvl:min);
+        if(adventureMasterView && worldMasterUnlocked(idx)) selectedAdventureLevel=min;
         adventureScrollPin=true;
         renderAdventure(true);
       };
       if(mapBox) mapBox.appendChild(chip);
     });
     for(let i=worldMin;i<=worldMax;i++){
-      const locked=i>maxPlayable; const st=data.advStars[i]||0; const b=document.createElement('button');
+      const locked=masterView?false:i>maxPlayable;
+      const st=starMap[i]||0;
+      const b=document.createElement('button');
       const gi=levelGoal(i); const wi=adventureWorld(i);
-      b.className='adv5-level-node '+(i<maxPlayable?'done':i===maxPlayable?'current':'')+(i===lvl?' selected':'')+(locked?' locked':'');
+      b.className='adv5-level-node '+(masterView?'master-node ':'')+(!masterView&&i<maxPlayable?'done':'')+(!masterView&&i===maxPlayable?' current':'')+(st>=3?' done':'')+(i===lvl?' selected':'')+(locked?' locked':'');
       b.style.setProperty('--node-accent', wi.accent);
       b.innerHTML=`<span class="adv5-node-num">${locked?'🔒':i}</span><small>${locked?tx('locked'):(st?('★'.repeat(st)+'☆'.repeat(3-st)):goalIcon(gi))}</small>`;
       b.onclick=()=>{ if(locked) return toast(tx('locked').toUpperCase()); selectedAdventureLevel=i; selectedAdventureWorldIdx=worldIdx; adventureScrollPin=true; renderAdventure(true); };
@@ -3491,7 +3721,7 @@
     return dayKey(d);
   }
   function blitzTimeExpired(){
-    return mode==='daily'&&dailyModActive('blitz')&&dailyBlitzEnd>0&&Date.now()>=dailyBlitzEnd;
+    return dailyModActive('blitz')&&dailyBlitzEnd>0&&Date.now()>=dailyBlitzEnd;
   }
   function handleBlitzExpiry(){
     if(!blitzTimeExpired()) return false;
@@ -4426,6 +4656,13 @@
   }
   // buttons
   $('resumeBtn').onclick=()=>{playTone('tap');resumeSavedRun()}; $('classicBtn').onclick=()=>{playTone('tap');resetDailyRuntimeState();show('screenClassic')}; $('classic8Btn').onclick=()=>{playTone('tap');startGame('classic8')}; $('classic10Btn').onclick=()=>{playTone('tap');startGame('classic10')}; $('adventureBtn').onclick=()=>{playTone('tap');selectedAdventureLevel=Math.min(data.adventureMax,ADVENTURE_MAX_LEVEL);selectedAdventureWorldIdx=null;adventureScrollPin=false;show('screenAdventure')}; $('startAdventureBtn').onclick=()=>startAdventureLevel(selectedAdventureLevel);
+  if($('advNormalBtn')) $('advNormalBtn').onclick=()=>{ adventureMasterView=false; playTone('tap'); renderAdventure(true); };
+  if($('advMasterBtn')) $('advMasterBtn').onclick=()=>{
+    const idx=selectedAdventureWorldIdx!=null?selectedAdventureWorldIdx:adventureWorldIndexForLevel(selectedAdventureLevel||data.adventureMax);
+    if(!worldMasterUnlocked(idx)) return toast(tx('masterLocked'));
+    adventureMasterView=true; playTone('tap'); renderAdventure(true);
+  };
+  if($('peakTrialBtn')) $('peakTrialBtn').onclick=()=>{ playTone('tap'); startPeakTrial(); };
   if($('navCustomize')) $('navCustomize').onclick=()=>{playTone('tap');showCustomize('theme');};
   if($('customizeTabThemeBtn')) $('customizeTabThemeBtn').onclick=()=>{playTone('tap');setCustomizeTab('theme');};
   if($('customizeTabMarketBtn')) $('customizeTabMarketBtn').onclick=()=>{playTone('tap');setCustomizeTab('market');};
@@ -4446,7 +4683,7 @@
   if($('shareScoreBtn')) $('shareScoreBtn').onclick=()=>{ playTone('tap'); shareCurrentScore(); };
   $('restartBtn').onclick=()=>requestRestart(false);
   $('againBtn').onclick=()=>{ finalizeGameOver(); $('screenGameOver').classList.remove('active'); if(mode==='daily') startDailyChallenge(dailyModId); else startGame(mode, currentAdventureLevel); };
-  $('continueBtn').onclick=()=>{ finalizeGameOver(); $('screenGameOver').classList.remove('active'); if(mode==='adventure') show('screenAdventure'); else if(mode==='daily') show('screenDaily'); else startGame(mode); };
+  $('continueBtn').onclick=()=>{ finalizeGameOver(); $('screenGameOver').classList.remove('active'); if(mode==='adventure' && peakTrialAdvanceOnContinue && peakTrialActive){ peakTrialAdvanceOnContinue=false; peakTrialStep++; startGame('adventure', PEAK_TRIAL_LEVELS[peakTrialStep]); return; } if(mode==='adventure'){ if(peakTrialActive){ peakTrialActive=false; peakTrialStep=0; } show('screenAdventure'); } else if(mode==='daily') show('screenDaily'); else startGame(mode); };
   $('menuBtn').onclick=()=>{ finalizeGameOver(); $('screenGameOver').classList.remove('active'); show('screenMenu'); };
   if($('reviveBtn')) $('reviveBtn').onclick=()=>{ playTone('tap'); tryRevive('coin'); };
   $('undoBtn').onclick=useUndo; $('hintBtn').onclick=useHint;

@@ -194,7 +194,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = BlockMir/BlockMir.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 122;
+				CURRENT_PROJECT_VERSION = 123;
 				DEVELOPMENT_TEAM = 3LRG7TQBTU;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = BlockMir/Info.plist;
@@ -203,7 +203,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6;
+				MARKETING_VERSION = 1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.blockmir.game;
 				PRODUCT_NAME = BlockMir;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -219,7 +219,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = BlockMir/BlockMir.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 122;
+				CURRENT_PROJECT_VERSION = 123;
 				DEVELOPMENT_TEAM = 3LRG7TQBTU;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = BlockMir/Info.plist;
@@ -228,7 +228,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.6;
+				MARKETING_VERSION = 1.7;
 				PRODUCT_BUNDLE_IDENTIFIER = com.blockmir.game;
 				PRODUCT_NAME = BlockMir;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

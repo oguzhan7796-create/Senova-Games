@@ -1,0 +1,22 @@
+BlockMir iOS 1.7 (123) — Dünya Ustalığı (New Game+)
+================================================================================
+
+APP STORE CONNECT — "Bu Sürümdeki Yenilikler" (Türkçe)
+------------------------------------------------------
+• Macera dünyasında 10 seviyenin hepsi 3 yıldız olunca Usta yolu açılır.
+• Usta’da kilit, gece, ayna, küçülen tahta ve tek parça kuralları dünyaya göre gelir.
+• Usta yıldızları ayrıdır; Zirve Denemesi 10 dünyayı tek oturuşta sınar.
+
+APP STORE CONNECT — "What's New in This Version" (English)
+--------------------------------------------------------
+• Master path unlocks when all 10 levels in a world are 3-starred.
+• Master runs use that world’s lock, night, mirror, shrink, or single-piece rules.
+• Master stars are separate; Summit Trial challenges all 10 worlds in one run.
+
+
+KISA ÖZET
+---------
+Kaynak: Android 1.1.19 (129) Dünya Ustalığı oynanışı, iOS 1.6 (122) üzerine.
+1.6 klasörü duruyor. Yeni klasör: Apple Store\1.7 (123)
+iOS kombo/VFX yolu korundu (Android hafif FX alınmadı).
+Sürüm: 1.7 / build 123 — APP_VERSION 1.7

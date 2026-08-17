@@ -151,7 +151,14 @@
       <div class="panel-head adv5-head"><button class="round backBtn">‹</button><h2>Macera Yolu</h2><div class="pill adv5-pill">⭐ <span id="advStarTotal">0</span> • <span id="advLevelHead">1</span>/100</div></div>
       <div class="adventure-scroll adv5-scroll" id="adventureScroll">
         <div id="worldMap" class="adv5-world-rail"></div>
-        <div class="adv5-map-head"><b id="adv5WorldTitle">Bölüm I</b><span id="advGridMeta">1-10</span></div>
+        <div class="adv5-map-head">
+          <b id="adv5WorldTitle">Bölüm I</b>
+          <div id="advMasterToggle" class="adv5-master-toggle hidden" role="tablist">
+            <button type="button" id="advNormalBtn" class="active">Normal</button>
+            <button type="button" id="advMasterBtn">Usta</button>
+          </div>
+          <span id="advGridMeta">1-10</span>
+        </div>
         <div id="levelGrid" class="adv5-level-path"></div>
         <div id="adv5Hero" class="adv5-hero adv5-hero-compact"></div>
         <div class="adv5-mission-shell">
@@ -160,7 +167,7 @@
           <div id="levelDesc" class="adv5-mission-body"></div>
         </div>
       </div>
-      <div class="adv5-footer"><p id="adv5ReplayHint" class="adv5-replay-hint hidden"></p><button class="big-btn adv5-play-btn" id="startAdventureBtn" type="button">▶ BÖLÜME BAŞLA</button></div>
+      <div class="adv5-footer"><p id="adv5ReplayHint" class="adv5-replay-hint hidden"></p><button class="big-btn adv5-peak-btn hidden" id="peakTrialBtn" type="button">▲ ZİRVE DENEMESİ</button><button class="big-btn adv5-play-btn" id="startAdventureBtn" type="button">▶ BÖLÜME BAŞLA</button></div>
     </section>
 
     <section id="screenCustomize" class="screen panel-screen customize-screen">
